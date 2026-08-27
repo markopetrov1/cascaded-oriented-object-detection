@@ -124,6 +124,39 @@ def sweep_domains() -> list[dict[str, Any]]:
     return domains
 
 
+# The OAN replication arm. Its gate is a head on the detector's own backbone, so
+# it shares the detector's forward pass and its overhead term is zero by
+# construction; the decomposition still applies unchanged.
+OAN_CASCADE = Path("reports/oan")
+
+
+def oan_domains() -> list[dict[str, Any]]:
+    """Domain entry for the jointly-trained OAN arm, if it has been evaluated."""
+    if not glob.glob(str(OAN_CASCADE / "cascade_oan_ships_*.json")):
+        return []
+    out = [{
+        "name": "OAN-joint/ships",
+        "metadata": "data/processed/dota_ships/metadata/tiles.jsonl",
+        "split": "val",
+        "classes": ["ship"],
+        "detector": "YOLO11m-OBB + fused OAN head",
+        "globs": [str(OAN_CASCADE / "cascade_oan_ships_*.json")],
+    }]
+    # The independent gate against the matched 50-epoch control, so the
+    # comparison is not confounded by the detector's training budget: the
+    # original ships detector early-stopped at epoch 11-14 under patience 10.
+    if glob.glob(str(OAN_CASCADE / "cascade_indep_ships_p50_*.json")):
+        out.append({
+            "name": "Independent/ships-matched",
+            "metadata": "data/processed/dota_ships/metadata/tiles.jsonl",
+            "split": "val",
+            "classes": ["ship"],
+            "detector": "YOLO11m-OBB (50 ep) + MobileNetV3 gate",
+            "globs": [str(OAN_CASCADE / "cascade_indep_ships_p50_*.json")],
+        })
+    return out
+
+
 def positive_rate(metadata: str | Path, split: str, classes: Iterable[str]) -> tuple[float, int, int]:
     """Fraction of tiles in `split` containing at least one instance of `classes`.
 
@@ -234,7 +267,7 @@ def main() -> int:
     summary: list[dict[str, Any]] = []
     worst_residual = 0.0
 
-    for domain in DOMAINS + sweep_domains():
+    for domain in DOMAINS + sweep_domains() + oan_domains():
         if "p_plus_override" in domain:
             p_plus = domain["p_plus_override"]
             n_pos = n_tiles = 0

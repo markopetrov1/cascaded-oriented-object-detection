@@ -1,0 +1,5 @@
+{
+  "rule": "T = (m + v)^2 / k, k=4 (Xie et al., Sci. China Inf. Sci. 2023)",
+  "threshold": 0.02425979183300975,
+  "n_maps": 2000
+}
