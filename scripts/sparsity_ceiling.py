@@ -1,96 +1,110 @@
 #!/usr/bin/env python3
-"""Sparsity-ceiling empirical law: max cascade savings ≈ 1 − positive_rate.
+"""Sparsity ceiling: achievable cascade savings against the positive-tile rate.
 
-Plots `positive_rate` (x) vs the BEST cascade-Pareto compute-saved%
-at the ≥97% mAP@0.5 threshold (y) across the 4 datasets we have:
-DOTA-ships / DOTA-planes / DOTA-small_vehicle / HRSC2016. Overlays the
-y = 100·(1 − x) line (the theoretical max from oracle filtering).
+Consumes the verified decomposition from scripts/savings_model.py rather than
+re-deriving savings from the report globs, which fixes three defects in the
+original version of this script:
+
+  * HRSC2016 was silently dropped. The positive rate was inferred from an oracle
+    run's filter rate, and reports/hrsc/ has no oracle rows, so the figure and
+    its JSON carried three points while the paper's text and caption claimed
+    four. p+ now comes from the tiling metadata and is always defined.
+
+  * The full-pass baseline was whichever tau = 0 row `glob.glob` happened to
+    return first, so a cascade running a 0.56 GFLOPs MobileNetV3 gate could be
+    scored against a baseline charged 10.79 GFLOPs for a ResNet-50 gate it never
+    runs. That inflated DOTA-planes by 0.9 pp and made the number depend on
+    filesystem ordering. Savings are now measured against the detector-only cost
+    N * G_f, identical for every row in a domain.
+
+  * The tolerance was 97 % of full-pass mAP while the manuscript states 3 pp.
+    Both are computed; which one the paper reports is now an explicit choice.
+
+Run scripts/savings_model.py first.
 """
 from __future__ import annotations
-import json, glob
+
+import json
 from pathlib import Path
-from collections import defaultdict
+
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
-
-def cascade_best_savings(glob_pat: str) -> tuple[float, float, float]:
-    """Return (positive_rate, best_savings_%, full_pass_mAP). Excludes distill+codesign."""
-    rows = []
-    seen = set()
-    for f in glob.glob(glob_pat):
-        if "stratif" in f or "codesign" in f or "distill" in f or "smoke" in f:
-            continue
-        # Skip OLD stratified-step main outputs whose label ends with the calibration
-        # name (these are duplicates of the proper per-calibration JSONs from Step 3).
-        for r in json.load(open(f)):
-            lbl = r.get('label', '')
-            calib = r.get('calibration', '')
-            if calib and lbl.endswith('_' + calib):
-                continue
-            # Dedupe by (label, calibration, threshold) — same row can be in multiple files
-            key = (lbl, calib, round(r['threshold'], 3))
-            if key in seen:
-                continue
-            seen.add(key)
-            rows.append(r)
-    real = [r for r in rows if r.get('gate') != 'oracle']
-    fp = next((r for r in real if r['threshold'] == 0.0), None)
-    if not fp:
-        return None, None, None
-    threshold = fp['mAP@0.50'] * 0.97
-    cand = [r for r in real if r['mAP@0.50'] >= threshold]
-    # Pick best by max compute-saved (i.e. min total_gflops), not max filter_rate —
-    # since gates have very different compute costs (mbv3small=0.14 G vs resnet50=10.79 G).
-    best = min(cand, key=lambda r: r['total_gflops'])
-    saved = 100.0 * (1 - best['total_gflops'] / fp['total_gflops'])
-    # Positive rate ≈ 1 − filter_rate at the oracle's natural operating point
-    oracle_rows = [r for r in rows if r.get('gate') == 'oracle']
-    o_best = max(oracle_rows, key=lambda r: r['mAP@0.50']) if oracle_rows else None
-    pos_rate = 1.0 - o_best['filter_rate'] if o_best else None
-    return pos_rate, saved, fp['mAP@0.50']
+SUMMARY = Path("reports/figures/savings_summary.json")
+# Which mAP-tolerance rule the figure reports. "absolute" is the 3 pp budget the
+# manuscript describes; "relative" is the 97 % rule that produced the published
+# numbers.
+TOLERANCE_RULE = "absolute"
+# The YOLO11n arm is the same tile population as DOTA-ships with a different
+# detector, so it would plot as a duplicate x-position; it is reported in the
+# orthogonality section instead.
+EXCLUDE = {"DOTA-ships/YOLO11n"}
 
 
 def main() -> int:
-    datasets = [
-        ("DOTA-ships",         "reports/cascade/*.json"),
-        ("DOTA-planes",        "reports/planes/cascade/*.json"),
-        ("DOTA-small_vehicle", "reports/small_vehicle/cascade/*.json"),
-        ("HRSC2016",           "reports/hrsc/*.json"),
-    ]
+    if not SUMMARY.exists():
+        print(f"  missing {SUMMARY} -- run scripts/savings_model.py first")
+        return 1
+    summary = json.load(open(SUMMARY))
+
     points = []
-    for name, pat in datasets:
-        pr, save, fp_map = cascade_best_savings(pat)
-        if pr is None:
+    for dom in summary:
+        if dom["domain"] in EXCLUDE:
             continue
-        points.append((name, pr, save, fp_map))
-        print(f"  {name:<22} positive_rate={pr:.3f}  saved={save:.1f}%  full_pass_mAP@0.5={fp_map:.3f}")
+        best = dom["by_tolerance_rule"].get(TOLERANCE_RULE)
+        if not best:
+            continue
+        points.append({
+            "dataset": dom["domain"],
+            "positive_rate": dom["p_plus"],
+            "savings_pct": 100.0 * best["saved_detector_only"],
+            "ceiling_pct": 100.0 * (1.0 - dom["p_plus"]),
+            "full_pass_mAP": dom["full_pass_mAP@0.50"],
+            "gate": best["gate"],
+            "calibration": best["calibration"],
+            "tpr": best["tpr"],
+            "fpr": best["fpr"],
+            "n_tiles": dom["n_tiles"],
+            "tolerance_rule": TOLERANCE_RULE,
+        })
+    points.sort(key=lambda p: p["positive_rate"])
+
+    for p in points:
+        print(f"  {p['dataset']:<22} p+={p['positive_rate']:.4f}  saved={p['savings_pct']:.1f}%"
+              f"  (ceiling {100*(1-p['positive_rate']):.1f}%)  TPR={p['tpr']:.3f} FPR={p['fpr']:.3f}")
 
     fig, ax = plt.subplots(figsize=(7, 5.5))
-    xs = np.linspace(0, 1, 100)
-    ax.plot(xs * 100, (1 - xs) * 100, "k--", alpha=0.4, label="oracle ceiling y = 100(1 − x)")
-    for name, pr, save, _ in points:
-        ax.scatter(pr * 100, save, s=120, zorder=5)
-        ax.annotate(name, (pr * 100, save), xytext=(7, 4), textcoords="offset points", fontsize=9)
-    ax.set_xlabel("Positive-tile rate (%)")
-    ax.set_ylabel("Best cascade compute saved at ≥97% full-pass mAP@0.5 (%)")
-    ax.set_title("Sparsity-ceiling empirical law")
-    ax.set_xlim(0, 100); ax.set_ylim(0, 100)
+    xs = np.linspace(0, 1, 200)
+    ax.plot(xs * 100, (1 - xs) * 100, "k--", alpha=0.5,
+            label=r"perfect-gate ceiling $1-p_+$")
+    ax.fill_between(xs * 100, (1 - xs) * 100, 100, color="0.9", zorder=0)
+    ax.text(52, 92, "unreachable", fontsize=9, color="0.45", style="italic")
+
+    px = [p["positive_rate"] * 100 for p in points]
+    py = [p["savings_pct"] for p in points]
+    ax.scatter(px, py, s=130, zorder=5, edgecolor="k", linewidth=0.6)
+    for p in points:
+        ax.annotate(p["dataset"], (p["positive_rate"] * 100, p["savings_pct"]),
+                    xytext=(8, -4), textcoords="offset points", fontsize=9)
+
+    ax.set_xlabel(r"Positive-tile rate $p_+$ (%)")
+    ax.set_ylabel("Best cascade compute saved (%)")
+    ax.set_title("The sparsity ceiling")
+    ax.set_xlim(0, 100)
+    ax.set_ylim(0, 100)
     ax.grid(alpha=0.3)
-    ax.legend(loc="upper right")
+    ax.legend(loc="lower left")
+
     out = Path("reports/figures")
     out.mkdir(parents=True, exist_ok=True)
     fig.savefig(out / "sparsity_ceiling.png", dpi=150, bbox_inches="tight")
     fig.savefig(out / "sparsity_ceiling.pdf", bbox_inches="tight")
     plt.close(fig)
-    # JSON dump for the paper
-    Path(out).joinpath("sparsity_ceiling.json").write_text(json.dumps(
-        [{"dataset": n, "positive_rate": pr, "savings_pct": s, "full_pass_mAP": m} for n, pr, s, m in points],
-        indent=2,
-    ))
-    print(f"\n  Wrote {out}/sparsity_ceiling.{{png,pdf,json}}")
+    (out / "sparsity_ceiling.json").write_text(json.dumps(points, indent=2))
+    print(f"\n  {len(points)} points -> {out}/sparsity_ceiling.{{png,pdf,json}}")
     return 0
 
 

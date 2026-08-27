@@ -45,18 +45,45 @@ def object_loss_at_threshold(scores_path: str, n_objects: dict[str, int], thresh
     return lost, total
 
 
+# Where each domain's gate scores and tiling metadata live. Which *gate* to
+# score is not hardcoded: it is read from reports/figures/savings_summary.json
+# so this table always describes the same operating point the headline results
+# report. Previously planes and small-vehicle were pinned to resnet50 while the
+# headline table used mbv3large and resnet18, so the published object-loss
+# figures described gates that appeared nowhere else in the paper.
+DOMAINS = {
+    "DOTA-ships": ("reports/gate_scores", "data/processed/dota_ships/metadata/tiles.jsonl"),
+    "DOTA-planes": ("reports/planes/gate_scores", "data/processed/dota_planes/metadata/tiles.jsonl"),
+    "DOTA-small_vehicle": ("reports/small_vehicle/gate_scores",
+                           "data/processed/dota_small_vehicle/metadata/tiles.jsonl"),
+}
+SUMMARY = Path("reports/figures/savings_summary.json")
+
+
+def headline_gates() -> list[tuple[str, str, str, str]]:
+    """(domain, scores_path, metadata, split) for each domain's headline gate."""
+    if not SUMMARY.exists():
+        raise SystemExit(f"missing {SUMMARY} -- run scripts/savings_model.py first")
+    cases = []
+    for dom in json.load(open(SUMMARY)):
+        if dom["domain"] not in DOMAINS:
+            continue
+        best = dom["by_tolerance_rule"]["absolute"]
+        if not best:
+            continue
+        scores_dir, meta = DOMAINS[dom["domain"]]
+        cases.append((dom["domain"], f"{scores_dir}/{best['gate']}_val.jsonl", meta, "val"))
+    return cases
+
+
 def main() -> int:
-    cases = [
-        ("DOTA-ships",         "reports/gate_scores/gate_mbv3large_val.jsonl",
-         "data/processed/dota_ships/metadata/tiles.jsonl", "val"),
-        ("DOTA-planes",        "reports/planes/gate_scores/gate_planes_resnet50_val.jsonl",
-         "data/processed/dota_planes/metadata/tiles.jsonl", "val"),
-        ("DOTA-small_vehicle", "reports/small_vehicle/gate_scores/gate_small_vehicle_resnet50_val.jsonl",
-         "data/processed/dota_small_vehicle/metadata/tiles.jsonl", "val"),
-    ]
-    print(f"{'dataset':<22} {'gate':<22} {'t':>6} {'objs_total':>11} {'objs_lost':>10} {'loss_rate':>10}")
+    cases = headline_gates()
+    print(f"{'dataset':<22} {'gate':<28} {'t':>6} {'objs_total':>11} {'objs_lost':>10} {'loss_rate':>10}")
     rows = []
     for name, scores_path, meta, split in cases:
+        if not Path(scores_path).exists():
+            print(f"  SKIP {name}: no scores at {scores_path}")
+            continue
         n_objs = per_tile_object_count(meta, split)
         for t in [0.1, 0.3, 0.5, 0.7, 0.9]:
             lost, total = object_loss_at_threshold(scores_path, n_objs, t)
@@ -64,7 +91,7 @@ def main() -> int:
             gate = Path(scores_path).stem.replace("_val", "")
             rows.append({"dataset": name, "gate": gate, "threshold": t,
                          "objects_total": total, "objects_lost": lost, "loss_rate": loss_rate})
-            print(f"  {name:<20} {gate:<22} {t:>6.2f} {total:>11} {lost:>10} {loss_rate:>10.4f}")
+            print(f"  {name:<20} {gate:<28} {t:>6.2f} {total:>11} {lost:>10} {loss_rate:>10.4f}")
     out = Path("reports/object_loss_rate.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(rows, indent=2))

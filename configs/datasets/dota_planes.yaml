@@ -1,4 +1,4 @@
-path: <REPO_ROOT>
+path: <REPO_ROOT>/data/processed/dota_planes
 train: images/train
 val: images/val
 test: images/test

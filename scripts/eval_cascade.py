@@ -63,6 +63,18 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--image-root", required=True, help="Path to images/<split>/")
     p.add_argument("--tile-size", type=int, default=1024)
     p.add_argument(
+        "--gt-classes",
+        nargs="*",
+        type=int,
+        default=None,
+        help=(
+            "Restrict ground truth to these class ids. mAP averages over the classes "
+            "present in the GT, so a single id yields that class's AP. Use this to pair "
+            "a single-class gate with the multi-class detector without writing a "
+            "filtered copy of every label file."
+        ),
+    )
+    p.add_argument(
         "--thresholds",
         nargs="*",
         type=float,
@@ -261,6 +273,7 @@ def main() -> int:
         gt_labels_dir=args.gt_labels,
         detector_image_root=args.image_root,
         tile_size=args.tile_size,
+        keep_classes=set(args.gt_classes) if args.gt_classes else None,
     )
     accountant = ComputeAccountant(
         gate=StageCost(name="gate", flops_g=args.gate_flops_g, latency_ms=args.gate_latency_ms),

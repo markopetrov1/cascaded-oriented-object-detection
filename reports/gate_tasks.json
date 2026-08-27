@@ -1,0 +1,212 @@
+[
+  {
+    "task": "basketball court",
+    "root": "data/processed/gate_basketball_court",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 344,
+      "p_plus": 0.021842656676614388
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 127,
+      "p_plus": 0.023975835378516143
+    }
+  },
+  {
+    "task": "baseball diamond",
+    "root": "data/processed/gate_baseball_diamond",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 385,
+      "p_plus": 0.02444599657121087
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 209,
+      "p_plus": 0.03945629601661318
+    }
+  },
+  {
+    "task": "swimming pool",
+    "root": "data/processed/gate_swimming_pool",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 848,
+      "p_plus": 0.05384468855165407
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 211,
+      "p_plus": 0.03983386822729847
+    }
+  },
+  {
+    "task": "soccer ball field",
+    "root": "data/processed/gate_soccer_ball_field",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 536,
+      "p_plus": 0.03403390691472474
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 223,
+      "p_plus": 0.04209930149141023
+    }
+  },
+  {
+    "task": "roundabout",
+    "root": "data/processed/gate_roundabout",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 643,
+      "p_plus": 0.04082798907867166
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 239,
+      "p_plus": 0.04511987917689258
+    }
+  },
+  {
+    "task": "tennis court",
+    "root": "data/processed/gate_tennis_court",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 769,
+      "p_plus": 0.048828497047431585
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 245,
+      "p_plus": 0.046252595808948464
+    }
+  },
+  {
+    "task": "ground track field",
+    "root": "data/processed/gate_ground_track_field",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 660,
+      "p_plus": 0.04190742269350435
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 262,
+      "p_plus": 0.04946195959977346
+    }
+  },
+  {
+    "task": "storage tank",
+    "root": "data/processed/gate_storage_tank",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 772,
+      "p_plus": 0.04901898533240206
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 297,
+      "p_plus": 0.05606947328676609
+    }
+  },
+  {
+    "task": "bridge",
+    "root": "data/processed/gate_bridge",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 1533,
+      "p_plus": 0.09733951361991237
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 448,
+      "p_plus": 0.08457617519350576
+    }
+  },
+  {
+    "task": "harbor",
+    "root": "data/processed/gate_harbor",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 2015,
+      "p_plus": 0.12794463140516857
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 680,
+      "p_plus": 0.12837455163299982
+    }
+  },
+  {
+    "task": "plane",
+    "root": "data/processed/gate_plane",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 2224,
+      "p_plus": 0.14121531525811162
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 688,
+      "p_plus": 0.12988484047574098
+    }
+  },
+  {
+    "task": "large vehicle",
+    "root": "data/processed/gate_large_vehicle",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 2772,
+      "p_plus": 0.17601117531271826
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 739,
+      "p_plus": 0.13951293184821598
+    }
+  },
+  {
+    "task": "ship",
+    "root": "data/processed/gate_ship",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 2672,
+      "p_plus": 0.16966156581370245
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 921,
+      "p_plus": 0.17387200302057768
+    }
+  },
+  {
+    "task": "small vehicle",
+    "root": "data/processed/gate_small_vehicle",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 5172,
+      "p_plus": 0.32840180328909774
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 1546,
+      "p_plus": 0.29186331885973194
+    }
+  },
+  {
+    "task": "any",
+    "root": "data/processed/gate_any",
+    "train": {
+      "n_tiles": 15749,
+      "n_positive": 10970,
+      "p_plus": 0.6965521620420344
+    },
+    "val": {
+      "n_tiles": 5297,
+      "n_positive": 3580,
+      "p_plus": 0.6758542571266755
+    }
+  }
+]

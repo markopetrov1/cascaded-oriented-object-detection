@@ -1,0 +1,27 @@
+# Multi-class YOLO11m-OBB over all 16 DOTA-1.5 classes.
+#
+# One detector serving every class, so the sparsity-ceiling sweep can place a
+# point per class without training 16 detectors. It is also the setting OAN
+# operates in -- a detector that must find any annotated object rather than one
+# selected class -- which is what makes its ~30 % speed-up comparable to ours.
+#
+# patience is 50 rather than the 10 used for the per-class baselines, which
+# early-stopped several runs at epochs 11-14 before the ImageNet-pretrained
+# weights had fine-tuned. Every other hyperparameter matches the per-class
+# baselines so the two are comparable.
+family: yolo11
+dataset: configs/datasets/dota_multiclass.yaml
+task: obb
+imgsz: 1024
+epochs: 100
+batch: 16
+device: auto
+seed: 67
+project: runs
+train_args:
+  patience: 50
+  amp: true
+  half: false
+models:
+  - name: baseline_yolo11m_dota_multiclass_obb
+    weights: yolo11m-obb.pt

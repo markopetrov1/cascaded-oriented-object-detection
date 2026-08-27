@@ -1,0 +1,23 @@
+scope,key,n_tiles,n_positive_tiles,positive_rate
+global,all,21046,14550,0.6913427729734867
+split,train,15749,10970,0.6965521620420344
+split,val,5297,3580,0.6758542571266755
+imagesource,GF,3040,1686,0.5546052631578947
+imagesource,GoogleEarth,13736,11568,0.8421665695981363
+imagesource,JL,4270,1296,0.3035128805620609
+class,baseball diamond,594,594,1.0
+class,basketball court,471,471,1.0
+class,bridge,1981,1981,1.0
+class,container crane,55,55,1.0
+class,ground track field,922,922,1.0
+class,harbor,2695,2695,1.0
+class,helicopter,186,186,1.0
+class,large vehicle,3511,3511,1.0
+class,plane,2912,2912,1.0
+class,roundabout,882,882,1.0
+class,ship,3593,3593,1.0
+class,small vehicle,6718,6718,1.0
+class,soccer ball field,759,759,1.0
+class,storage tank,1069,1069,1.0
+class,swimming pool,1059,1059,1.0
+class,tennis court,1014,1014,1.0

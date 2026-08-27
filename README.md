@@ -15,8 +15,9 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Hardware: pinned to `cuda4` (`Quadro RTX 8000`, 48GB, Turing → FP16 AMP). Driver
-CUDA 12.6.
+Hardware: `Quadro RTX 8000` (48GB, Turing → FP16 AMP). Driver 580.173.02,
+CUDA 13.0; the environment above resolves to `torch 2.13.0+cu130`, verified
+working on this GPU.
 
 ## One-shot pipeline
 

@@ -1,0 +1,13 @@
+{
+  "label": "yolo11m_multiclass_obb_b16",
+  "mode": "detector",
+  "weights": "<REPO_ROOT>/runs/obb/runs/baseline_yolo11m_dota_multiclass_obb/weights/best.pt",
+  "imgsz": 1024,
+  "batch_size": 16,
+  "device": "cuda:1",
+  "gflops_per_image": 184.169005056,
+  "ms_per_image_gpu": 20.49065687606344,
+  "ms_per_image_cpu": null,
+  "warmup": 10,
+  "iters": 50
+}

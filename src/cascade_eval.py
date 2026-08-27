@@ -63,12 +63,22 @@ def _tile_dims_from_stem(stem: str, default: int = 1024) -> tuple[int, int]:
 
 
 def load_yolo_obb_ground_truth(
-    labels_dir: str | Path, tile_size: int = 1024
+    labels_dir: str | Path,
+    tile_size: int = 1024,
+    keep_classes: set[int] | None = None,
 ) -> dict[str, TileGroundTruth]:
     """Read YOLO-OBB labels back into pixel-coord polygons.
 
     YOLO OBB labels are normalized to [0,1]. Tile dimensions are parsed from
     the tile stem (e.g. ``_w558_h1024``) so edge tiles are handled correctly.
+
+    ``keep_classes`` restricts the ground truth to those class ids. mAP is
+    averaged over the classes present in the ground truth, so passing a single
+    id turns the result into that class's AP -- which is what the sparsity
+    sweep needs, where a gate trained for one class is paired with the
+    multi-class detector. Detections of other classes are then simply never
+    scored. Filtering here avoids materialising a per-class copy of every
+    label file.
     """
     out: dict[str, TileGroundTruth] = {}
     labels_path = Path(labels_dir)
@@ -83,7 +93,10 @@ def load_yolo_obb_ground_truth(
             parts = line.split()
             if len(parts) < 9:
                 continue
-            cls.append(int(parts[0]))
+            cid = int(parts[0])
+            if keep_classes is not None and cid not in keep_classes:
+                continue
+            cls.append(cid)
             pts = np.asarray([float(x) for x in parts[1:9]], dtype=np.float32).reshape(4, 2)
             polys.append(pts * scale)
         out[txt.stem] = TileGroundTruth(
@@ -392,6 +405,7 @@ def assemble_for_evaluation(
     gt_labels_dir: str | Path,
     detector_image_root: str | Path,
     tile_size: int = 1024,
+    keep_classes: set[int] | None = None,
 ):
     """One-call helper: load tile scores, detector outputs, and ground truth.
 
@@ -402,7 +416,9 @@ def assemble_for_evaluation(
 
     tile_scores = load_tile_scores(score_jsonl)
     detections = load_detector_outputs_yolo_obb(detector_runs_dir, detector_image_root)
-    ground_truth = load_yolo_obb_ground_truth(gt_labels_dir, tile_size=tile_size)
+    ground_truth = load_yolo_obb_ground_truth(
+        gt_labels_dir, tile_size=tile_size, keep_classes=keep_classes
+    )
     return tile_scores, detections, ground_truth
 
 

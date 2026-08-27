@@ -1,0 +1,13 @@
+{
+  "label": "gate_mbv3large_b1",
+  "mode": "gate",
+  "weights": "<REPO_ROOT>/runs/gate_sweep_ship/best.pt",
+  "imgsz": 256,
+  "batch_size": 1,
+  "device": "cuda:1",
+  "gflops_per_image": 0.6068675840000001,
+  "ms_per_image_gpu": 5.9569634613581,
+  "ms_per_image_cpu": null,
+  "warmup": 20,
+  "iters": 100
+}

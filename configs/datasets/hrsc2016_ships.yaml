@@ -1,4 +1,4 @@
-path: <REPO_ROOT>
+path: <REPO_ROOT>/data/processed/hrsc2016
 train: images/train
 val: images/val
 test: images/test
