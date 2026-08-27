@@ -1,0 +1,13 @@
+{
+  "label": "gate_resnet50",
+  "mode": "gate",
+  "weights": "runs/gate_resnet50/best.pt",
+  "imgsz": 256,
+  "batch_size": 32,
+  "device": "cuda:1",
+  "gflops_per_image": 10.79300096,
+  "ms_per_image_gpu": 1.2067442148691043,
+  "ms_per_image_cpu": null,
+  "warmup": 20,
+  "iters": 100
+}

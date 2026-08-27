@@ -1,0 +1,297 @@
+{
+  "global": {
+    "max_obj_size_buckets": {
+      "32-96px": 1906,
+      "96-256px": 2777,
+      "<32px": 397,
+      ">256px": 1638
+    },
+    "mean_objects_per_positive_tile": 45.013,
+    "median_objects_per_positive_tile": 14.5,
+    "n_positive_tiles": 6718,
+    "n_tiles": 31879,
+    "positive_rate": 0.2107343392201763
+  },
+  "gsd_distribution": {
+    "max": 4.49616212889,
+    "mean": 0.5193,
+    "median": 0.49811032101,
+    "min": 0.0917181119616,
+    "n_with_gsd": 20723
+  },
+  "n_source_images": 2806,
+  "per_class": {
+    "baseball diamond": {
+      "max_obj_size_buckets": {
+        "96-256px": 110,
+        ">256px": 141
+      },
+      "mean_objects_per_positive_tile": 47.677,
+      "median_objects_per_positive_tile": 20.0,
+      "n_positive_tiles": 251,
+      "n_tiles": 594,
+      "positive_rate": 0.4225589225589226
+    },
+    "basketball court": {
+      "max_obj_size_buckets": {
+        "32-96px": 8,
+        "96-256px": 137,
+        ">256px": 117
+      },
+      "mean_objects_per_positive_tile": 40.111,
+      "median_objects_per_positive_tile": 16.0,
+      "n_positive_tiles": 262,
+      "n_tiles": 471,
+      "positive_rate": 0.5562632696390658
+    },
+    "bridge": {
+      "max_obj_size_buckets": {
+        "32-96px": 13,
+        "96-256px": 67,
+        ">256px": 34
+      },
+      "mean_objects_per_positive_tile": 82.965,
+      "median_objects_per_positive_tile": 25.0,
+      "n_positive_tiles": 114,
+      "n_tiles": 1981,
+      "positive_rate": 0.05754669358909641
+    },
+    "container crane": {
+      "max_obj_size_buckets": {
+        "32-96px": 1,
+        "96-256px": 3,
+        ">256px": 4
+      },
+      "mean_objects_per_positive_tile": 66.125,
+      "median_objects_per_positive_tile": 32.0,
+      "n_positive_tiles": 8,
+      "n_tiles": 55,
+      "positive_rate": 0.14545454545454545
+    },
+    "ground track field": {
+      "max_obj_size_buckets": {
+        "96-256px": 20,
+        ">256px": 254
+      },
+      "mean_objects_per_positive_tile": 40.19,
+      "median_objects_per_positive_tile": 15.5,
+      "n_positive_tiles": 274,
+      "n_tiles": 922,
+      "positive_rate": 0.29718004338394793
+    },
+    "harbor": {
+      "max_obj_size_buckets": {
+        "32-96px": 151,
+        "96-256px": 619,
+        "<32px": 1,
+        ">256px": 671
+      },
+      "mean_objects_per_positive_tile": 23.485,
+      "median_objects_per_positive_tile": 9.0,
+      "n_positive_tiles": 1442,
+      "n_tiles": 2695,
+      "positive_rate": 0.535064935064935
+    },
+    "helicopter": {
+      "max_obj_size_buckets": {
+        "32-96px": 33,
+        "96-256px": 50,
+        ">256px": 6
+      },
+      "mean_objects_per_positive_tile": 28.292,
+      "median_objects_per_positive_tile": 9.0,
+      "n_positive_tiles": 89,
+      "n_tiles": 186,
+      "positive_rate": 0.478494623655914
+    },
+    "large vehicle": {
+      "max_obj_size_buckets": {
+        "32-96px": 1046,
+        "96-256px": 1346,
+        "<32px": 149,
+        ">256px": 449
+      },
+      "mean_objects_per_positive_tile": 65.746,
+      "median_objects_per_positive_tile": 23.0,
+      "n_positive_tiles": 2990,
+      "n_tiles": 3511,
+      "positive_rate": 0.8516092281401311
+    },
+    "plane": {
+      "max_obj_size_buckets": {
+        "32-96px": 160,
+        "96-256px": 640,
+        "<32px": 4,
+        ">256px": 360
+      },
+      "mean_objects_per_positive_tile": 54.703,
+      "median_objects_per_positive_tile": 10.0,
+      "n_positive_tiles": 1164,
+      "n_tiles": 2912,
+      "positive_rate": 0.39972527472527475
+    },
+    "roundabout": {
+      "max_obj_size_buckets": {
+        "32-96px": 87,
+        "96-256px": 104,
+        "<32px": 7,
+        ">256px": 104
+      },
+      "mean_objects_per_positive_tile": 119.679,
+      "median_objects_per_positive_tile": 42.0,
+      "n_positive_tiles": 302,
+      "n_tiles": 882,
+      "positive_rate": 0.3424036281179138
+    },
+    "ship": {
+      "max_obj_size_buckets": {
+        "32-96px": 262,
+        "96-256px": 689,
+        "<32px": 5,
+        ">256px": 675
+      },
+      "mean_objects_per_positive_tile": 30.891,
+      "median_objects_per_positive_tile": 12.0,
+      "n_positive_tiles": 1631,
+      "n_tiles": 3593,
+      "positive_rate": 0.4539382131923184
+    },
+    "small vehicle": {
+      "max_obj_size_buckets": {
+        "32-96px": 1906,
+        "96-256px": 2777,
+        "<32px": 397,
+        ">256px": 1638
+      },
+      "mean_objects_per_positive_tile": 45.013,
+      "median_objects_per_positive_tile": 14.5,
+      "n_positive_tiles": 6718,
+      "n_tiles": 6718,
+      "positive_rate": 1.0
+    },
+    "soccer ball field": {
+      "max_obj_size_buckets": {
+        "96-256px": 26,
+        ">256px": 349
+      },
+      "mean_objects_per_positive_tile": 37.816,
+      "median_objects_per_positive_tile": 15.0,
+      "n_positive_tiles": 375,
+      "n_tiles": 759,
+      "positive_rate": 0.49407114624505927
+    },
+    "storage tank": {
+      "max_obj_size_buckets": {
+        "32-96px": 94,
+        "96-256px": 112,
+        "<32px": 10,
+        ">256px": 57
+      },
+      "mean_objects_per_positive_tile": 98.205,
+      "median_objects_per_positive_tile": 28.0,
+      "n_positive_tiles": 273,
+      "n_tiles": 1069,
+      "positive_rate": 0.255378858746492
+    },
+    "swimming pool": {
+      "max_obj_size_buckets": {
+        "32-96px": 234,
+        "96-256px": 390,
+        "<32px": 12,
+        ">256px": 190
+      },
+      "mean_objects_per_positive_tile": 33.322,
+      "median_objects_per_positive_tile": 13.0,
+      "n_positive_tiles": 826,
+      "n_tiles": 1059,
+      "positive_rate": 0.7799811142587346
+    },
+    "tennis court": {
+      "max_obj_size_buckets": {
+        "32-96px": 55,
+        "96-256px": 434,
+        ">256px": 240
+      },
+      "mean_objects_per_positive_tile": 37.627,
+      "median_objects_per_positive_tile": 15.0,
+      "n_positive_tiles": 729,
+      "n_tiles": 1014,
+      "positive_rate": 0.7189349112426036
+    }
+  },
+  "per_imagesource": {
+    "GF": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 3040,
+      "positive_rate": 0.0
+    },
+    "GoogleEarth": {
+      "max_obj_size_buckets": {
+        "32-96px": 1906,
+        "96-256px": 2777,
+        "<32px": 397,
+        ">256px": 1638
+      },
+      "mean_objects_per_positive_tile": 45.013,
+      "median_objects_per_positive_tile": 14.5,
+      "n_positive_tiles": 6718,
+      "n_tiles": 13736,
+      "positive_rate": 0.48907979033197435
+    },
+    "JL": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 4270,
+      "positive_rate": 0.0
+    },
+    "unknown": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 10833,
+      "positive_rate": 0.0
+    }
+  },
+  "per_split": {
+    "test": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 10833,
+      "positive_rate": 0.0
+    },
+    "train": {
+      "max_obj_size_buckets": {
+        "32-96px": 1526,
+        "96-256px": 2190,
+        "<32px": 272,
+        ">256px": 1184
+      },
+      "mean_objects_per_positive_tile": 43.925,
+      "median_objects_per_positive_tile": 15.0,
+      "n_positive_tiles": 5172,
+      "n_tiles": 15749,
+      "positive_rate": 0.32840180328909774
+    },
+    "val": {
+      "max_obj_size_buckets": {
+        "32-96px": 380,
+        "96-256px": 587,
+        "<32px": 125,
+        ">256px": 454
+      },
+      "mean_objects_per_positive_tile": 48.651,
+      "median_objects_per_positive_tile": 13.0,
+      "n_positive_tiles": 1546,
+      "n_tiles": 5297,
+      "positive_rate": 0.29186331885973194
+    }
+  }
+}

@@ -1,0 +1,295 @@
+{
+  "global": {
+    "max_obj_size_buckets": {
+      "32-96px": 545,
+      "96-256px": 1434,
+      "<32px": 46,
+      ">256px": 887
+    },
+    "mean_objects_per_positive_tile": 7.547,
+    "median_objects_per_positive_tile": 4.0,
+    "n_positive_tiles": 2912,
+    "n_tiles": 31879,
+    "positive_rate": 0.09134539979296716
+  },
+  "gsd_distribution": {
+    "max": 4.49616212889,
+    "mean": 0.5193,
+    "median": 0.49811032101,
+    "min": 0.0917181119616,
+    "n_with_gsd": 20723
+  },
+  "n_source_images": 2806,
+  "per_class": {
+    "baseball diamond": {
+      "max_obj_size_buckets": {
+        "32-96px": 3,
+        "96-256px": 1
+      },
+      "mean_objects_per_positive_tile": 4.25,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 4,
+      "n_tiles": 594,
+      "positive_rate": 0.006734006734006734
+    },
+    "basketball court": {
+      "max_obj_size_buckets": {
+        "32-96px": 5,
+        "96-256px": 3,
+        ">256px": 1
+      },
+      "mean_objects_per_positive_tile": 5.444,
+      "median_objects_per_positive_tile": 7.0,
+      "n_positive_tiles": 9,
+      "n_tiles": 471,
+      "positive_rate": 0.01910828025477707
+    },
+    "bridge": {
+      "max_obj_size_buckets": {
+        "32-96px": 3,
+        "96-256px": 9,
+        ">256px": 7
+      },
+      "mean_objects_per_positive_tile": 4.526,
+      "median_objects_per_positive_tile": 3.0,
+      "n_positive_tiles": 19,
+      "n_tiles": 1981,
+      "positive_rate": 0.009591115598182737
+    },
+    "container crane": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 55,
+      "positive_rate": 0.0
+    },
+    "ground track field": {
+      "max_obj_size_buckets": {
+        "32-96px": 3,
+        "96-256px": 2,
+        ">256px": 1
+      },
+      "mean_objects_per_positive_tile": 6.833,
+      "median_objects_per_positive_tile": 7.0,
+      "n_positive_tiles": 6,
+      "n_tiles": 922,
+      "positive_rate": 0.006507592190889371
+    },
+    "harbor": {
+      "max_obj_size_buckets": {
+        "32-96px": 2,
+        ">256px": 6
+      },
+      "mean_objects_per_positive_tile": 3.375,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 8,
+      "n_tiles": 2695,
+      "positive_rate": 0.002968460111317254
+    },
+    "helicopter": {
+      "max_obj_size_buckets": {
+        "32-96px": 25,
+        "96-256px": 69,
+        ">256px": 21
+      },
+      "mean_objects_per_positive_tile": 14.383,
+      "median_objects_per_positive_tile": 7.0,
+      "n_positive_tiles": 115,
+      "n_tiles": 186,
+      "positive_rate": 0.6182795698924731
+    },
+    "large vehicle": {
+      "max_obj_size_buckets": {
+        "32-96px": 106,
+        "96-256px": 438,
+        "<32px": 1,
+        ">256px": 216
+      },
+      "mean_objects_per_positive_tile": 8.315,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 761,
+      "n_tiles": 3511,
+      "positive_rate": 0.21674736542295642
+    },
+    "plane": {
+      "max_obj_size_buckets": {
+        "32-96px": 545,
+        "96-256px": 1434,
+        "<32px": 46,
+        ">256px": 887
+      },
+      "mean_objects_per_positive_tile": 7.547,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 2912,
+      "n_tiles": 2912,
+      "positive_rate": 1.0
+    },
+    "roundabout": {
+      "max_obj_size_buckets": {
+        "32-96px": 24,
+        "96-256px": 32,
+        ">256px": 1
+      },
+      "mean_objects_per_positive_tile": 5.263,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 57,
+      "n_tiles": 882,
+      "positive_rate": 0.06462585034013606
+    },
+    "ship": {
+      "max_obj_size_buckets": {
+        "32-96px": 13,
+        "96-256px": 13,
+        ">256px": 12
+      },
+      "mean_objects_per_positive_tile": 11.921,
+      "median_objects_per_positive_tile": 10.0,
+      "n_positive_tiles": 38,
+      "n_tiles": 3593,
+      "positive_rate": 0.010576120233787921
+    },
+    "small vehicle": {
+      "max_obj_size_buckets": {
+        "32-96px": 160,
+        "96-256px": 640,
+        "<32px": 4,
+        ">256px": 360
+      },
+      "mean_objects_per_positive_tile": 8.595,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 1164,
+      "n_tiles": 6718,
+      "positive_rate": 0.17326585293242036
+    },
+    "soccer ball field": {
+      "max_obj_size_buckets": {
+        "32-96px": 2,
+        "96-256px": 2,
+        ">256px": 1
+      },
+      "mean_objects_per_positive_tile": 7.4,
+      "median_objects_per_positive_tile": 7.0,
+      "n_positive_tiles": 5,
+      "n_tiles": 759,
+      "positive_rate": 0.006587615283267457
+    },
+    "storage tank": {
+      "max_obj_size_buckets": {
+        "32-96px": 23,
+        "96-256px": 37,
+        "<32px": 1,
+        ">256px": 11
+      },
+      "mean_objects_per_positive_tile": 4.639,
+      "median_objects_per_positive_tile": 3.0,
+      "n_positive_tiles": 72,
+      "n_tiles": 1069,
+      "positive_rate": 0.06735266604303088
+    },
+    "swimming pool": {
+      "max_obj_size_buckets": {
+        "32-96px": 3,
+        "96-256px": 2,
+        "<32px": 1
+      },
+      "mean_objects_per_positive_tile": 6,
+      "median_objects_per_positive_tile": 2.5,
+      "n_positive_tiles": 6,
+      "n_tiles": 1059,
+      "positive_rate": 0.0056657223796034
+    },
+    "tennis court": {
+      "max_obj_size_buckets": {
+        "96-256px": 1
+      },
+      "mean_objects_per_positive_tile": 4,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 1,
+      "n_tiles": 1014,
+      "positive_rate": 0.0009861932938856016
+    }
+  },
+  "per_imagesource": {
+    "GF": {
+      "max_obj_size_buckets": {
+        "32-96px": 16,
+        "96-256px": 19
+      },
+      "mean_objects_per_positive_tile": 7.229,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 35,
+      "n_tiles": 3040,
+      "positive_rate": 0.011513157894736841
+    },
+    "GoogleEarth": {
+      "max_obj_size_buckets": {
+        "32-96px": 396,
+        "96-256px": 1388,
+        "<32px": 22,
+        ">256px": 887
+      },
+      "mean_objects_per_positive_tile": 7.674,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 2693,
+      "n_tiles": 13736,
+      "positive_rate": 0.1960541642399534
+    },
+    "JL": {
+      "max_obj_size_buckets": {
+        "32-96px": 133,
+        "96-256px": 27,
+        "<32px": 24
+      },
+      "mean_objects_per_positive_tile": 5.739,
+      "median_objects_per_positive_tile": 3.0,
+      "n_positive_tiles": 184,
+      "n_tiles": 4270,
+      "positive_rate": 0.04309133489461359
+    },
+    "unknown": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 10833,
+      "positive_rate": 0.0
+    }
+  },
+  "per_split": {
+    "test": {
+      "max_obj_size_buckets": {},
+      "mean_objects_per_positive_tile": 0.0,
+      "median_objects_per_positive_tile": 0.0,
+      "n_positive_tiles": 0,
+      "n_tiles": 10833,
+      "positive_rate": 0.0
+    },
+    "train": {
+      "max_obj_size_buckets": {
+        "32-96px": 436,
+        "96-256px": 1141,
+        "<32px": 27,
+        ">256px": 620
+      },
+      "mean_objects_per_positive_tile": 7.496,
+      "median_objects_per_positive_tile": 4.0,
+      "n_positive_tiles": 2224,
+      "n_tiles": 15749,
+      "positive_rate": 0.14121531525811162
+    },
+    "val": {
+      "max_obj_size_buckets": {
+        "32-96px": 109,
+        "96-256px": 293,
+        "<32px": 19,
+        ">256px": 267
+      },
+      "mean_objects_per_positive_tile": 7.709,
+      "median_objects_per_positive_tile": 3.0,
+      "n_positive_tiles": 688,
+      "n_tiles": 5297,
+      "positive_rate": 0.12988484047574098
+    }
+  }
+}

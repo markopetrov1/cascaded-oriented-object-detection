@@ -1,0 +1,122 @@
+[
+  {
+    "dataset": "DOTA-ships",
+    "gate": "gate_mbv3large",
+    "threshold": 0.1,
+    "objects_total": 23035,
+    "objects_lost": 473,
+    "loss_rate": 0.02053397004558281
+  },
+  {
+    "dataset": "DOTA-ships",
+    "gate": "gate_mbv3large",
+    "threshold": 0.3,
+    "objects_total": 23035,
+    "objects_lost": 693,
+    "loss_rate": 0.030084653787714348
+  },
+  {
+    "dataset": "DOTA-ships",
+    "gate": "gate_mbv3large",
+    "threshold": 0.5,
+    "objects_total": 23035,
+    "objects_lost": 781,
+    "loss_rate": 0.03390492728456696
+  },
+  {
+    "dataset": "DOTA-ships",
+    "gate": "gate_mbv3large",
+    "threshold": 0.7,
+    "objects_total": 23035,
+    "objects_lost": 917,
+    "loss_rate": 0.03980898632515737
+  },
+  {
+    "dataset": "DOTA-ships",
+    "gate": "gate_mbv3large",
+    "threshold": 0.9,
+    "objects_total": 23035,
+    "objects_lost": 1047,
+    "loss_rate": 0.04545257217278055
+  },
+  {
+    "dataset": "DOTA-planes",
+    "gate": "gate_planes_resnet50",
+    "threshold": 0.1,
+    "objects_total": 5304,
+    "objects_lost": 200,
+    "loss_rate": 0.03770739064856712
+  },
+  {
+    "dataset": "DOTA-planes",
+    "gate": "gate_planes_resnet50",
+    "threshold": 0.3,
+    "objects_total": 5304,
+    "objects_lost": 324,
+    "loss_rate": 0.06108597285067873
+  },
+  {
+    "dataset": "DOTA-planes",
+    "gate": "gate_planes_resnet50",
+    "threshold": 0.5,
+    "objects_total": 5304,
+    "objects_lost": 357,
+    "loss_rate": 0.0673076923076923
+  },
+  {
+    "dataset": "DOTA-planes",
+    "gate": "gate_planes_resnet50",
+    "threshold": 0.7,
+    "objects_total": 5304,
+    "objects_lost": 423,
+    "loss_rate": 0.07975113122171945
+  },
+  {
+    "dataset": "DOTA-planes",
+    "gate": "gate_planes_resnet50",
+    "threshold": 0.9,
+    "objects_total": 5304,
+    "objects_lost": 530,
+    "loss_rate": 0.09992458521870287
+  },
+  {
+    "dataset": "DOTA-small_vehicle",
+    "gate": "gate_small_vehicle_resnet50",
+    "threshold": 0.1,
+    "objects_total": 75215,
+    "objects_lost": 1648,
+    "loss_rate": 0.02191052316692149
+  },
+  {
+    "dataset": "DOTA-small_vehicle",
+    "gate": "gate_small_vehicle_resnet50",
+    "threshold": 0.3,
+    "objects_total": 75215,
+    "objects_lost": 3555,
+    "loss_rate": 0.047264508409226885
+  },
+  {
+    "dataset": "DOTA-small_vehicle",
+    "gate": "gate_small_vehicle_resnet50",
+    "threshold": 0.5,
+    "objects_total": 75215,
+    "objects_lost": 5536,
+    "loss_rate": 0.07360233995878482
+  },
+  {
+    "dataset": "DOTA-small_vehicle",
+    "gate": "gate_small_vehicle_resnet50",
+    "threshold": 0.7,
+    "objects_total": 75215,
+    "objects_lost": 7916,
+    "loss_rate": 0.10524496443528551
+  },
+  {
+    "dataset": "DOTA-small_vehicle",
+    "gate": "gate_small_vehicle_resnet50",
+    "threshold": 0.9,
+    "objects_total": 75215,
+    "objects_lost": 19559,
+    "loss_rate": 0.26004121518314166
+  }
+]

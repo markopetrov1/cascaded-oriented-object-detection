@@ -1,0 +1,13 @@
+{
+  "label": "gate_tiny",
+  "mode": "gate",
+  "weights": "runs/gate_tiny/best.pt",
+  "imgsz": 256,
+  "batch_size": 32,
+  "device": "cuda:1",
+  "gflops_per_image": 5.0040673280000005,
+  "ms_per_image_gpu": 0.5533653165912256,
+  "ms_per_image_cpu": null,
+  "warmup": 20,
+  "iters": 100
+}

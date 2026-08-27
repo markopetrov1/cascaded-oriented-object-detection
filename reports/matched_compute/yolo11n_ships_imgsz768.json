@@ -1,0 +1,30 @@
+[
+  {
+    "label": "yolo11n_ships_imgsz768",
+    "threshold": 0.0,
+    "filter_rate": 0.0,
+    "gate_recall_on_positive_tiles": 1.0,
+    "mAP@0.50": 0.7804902232159353,
+    "mAP@0.55": 0.7590705887691117,
+    "mAP@0.60": 0.7370983780884324,
+    "mAP@0.65": 0.7146210451689928,
+    "mAP@0.70": 0.6690417430666789,
+    "mAP@0.75": 0.577786984751675,
+    "mAP@0.80": 0.3929806808686891,
+    "mAP@0.85": 0.14522070489080768,
+    "mAP@0.90": 0.015568104624469281,
+    "mAP@0.95": 0.00021349843879266633,
+    "mAP@0.5:0.95": 0.47920919518835847,
+    "n_classes": 1,
+    "gate_gflops": 0.0,
+    "detector_gflops": 19665.1125,
+    "total_gflops": 19665.1125,
+    "gate_latency_ms": 0.0,
+    "detector_latency_ms": 2197.8969487092395,
+    "total_latency_ms": 2197.8969487092395,
+    "n_tiles": 5297,
+    "n_accepted": 5297,
+    "calibration": "identity",
+    "gate": "real"
+  }
+]

@@ -1,0 +1,7 @@
+path: <REPO_ROOT>
+train: images/train
+val: images/val
+test: images/test
+task: obb
+names:
+  0: ship

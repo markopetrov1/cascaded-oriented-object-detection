@@ -1,0 +1,77 @@
+[
+  {
+    "class": "ships",
+    "approach": "cascade",
+    "ms_total": 15412.086743643158,
+    "n_tiles": 5297,
+    "n_passed": 667
+  },
+  {
+    "class": "ships",
+    "approach": "yolo11n_imgsz768",
+    "ms_total": 2197.6029497317813,
+    "n_tiles": 5297
+  },
+  {
+    "class": "ships",
+    "approach": "yolo11n_imgsz896",
+    "ms_total": 2991.1817926904796,
+    "n_tiles": 5297
+  },
+  {
+    "class": "ships",
+    "approach": "yolo11n_imgsz1024",
+    "ms_total": 3906.8496884120555,
+    "n_tiles": 5297
+  },
+  {
+    "class": "planes",
+    "approach": "cascade",
+    "ms_total": 20657.933686830802,
+    "n_tiles": 5174,
+    "n_passed": 924
+  },
+  {
+    "class": "planes",
+    "approach": "yolo11n_imgsz768",
+    "ms_total": 2146.573090789548,
+    "n_tiles": 5174
+  },
+  {
+    "class": "planes",
+    "approach": "yolo11n_imgsz896",
+    "ms_total": 2921.7244846857734,
+    "n_tiles": 5174
+  },
+  {
+    "class": "planes",
+    "approach": "yolo11n_imgsz1024",
+    "ms_total": 3816.1299391814186,
+    "n_tiles": 5174
+  },
+  {
+    "class": "small_vehicle",
+    "approach": "cascade",
+    "ms_total": 33616.30900045566,
+    "n_tiles": 5297,
+    "n_passed": 1547
+  },
+  {
+    "class": "small_vehicle",
+    "approach": "yolo11n_imgsz768",
+    "ms_total": 2197.6029497317813,
+    "n_tiles": 5297
+  },
+  {
+    "class": "small_vehicle",
+    "approach": "yolo11n_imgsz896",
+    "ms_total": 2991.1817926904796,
+    "n_tiles": 5297
+  },
+  {
+    "class": "small_vehicle",
+    "approach": "yolo11n_imgsz1024",
+    "ms_total": 3906.8496884120555,
+    "n_tiles": 5297
+  }
+]

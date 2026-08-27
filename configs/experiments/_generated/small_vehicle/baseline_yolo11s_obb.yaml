@@ -1,0 +1,16 @@
+family: yolo11
+dataset: configs/datasets/dota_small_vehicle.yaml
+task: obb
+imgsz: 1024
+epochs: 100
+batch: 24
+device: auto
+seed: 67
+project: runs
+train_args:
+  patience: 10
+  amp: true
+  half: false
+models:
+  - name: baseline_yolo11s_dota_small_vehicle_obb
+    weights: yolo11s-obb.pt

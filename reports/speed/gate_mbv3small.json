@@ -1,0 +1,13 @@
+{
+  "label": "gate_mbv3small",
+  "mode": "gate",
+  "weights": "runs/gate_mbv3small/best.pt",
+  "imgsz": 256,
+  "batch_size": 32,
+  "device": "cuda:1",
+  "gflops_per_image": 0.14437696,
+  "ms_per_image_gpu": 0.1640054542804137,
+  "ms_per_image_cpu": null,
+  "warmup": 20,
+  "iters": 100
+}

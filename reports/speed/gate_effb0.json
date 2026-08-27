@@ -1,0 +1,13 @@
+{
+  "label": "gate_effb0",
+  "mode": "gate",
+  "weights": "runs/gate_effb0/best.pt",
+  "imgsz": 256,
+  "batch_size": 32,
+  "device": "cuda:1",
+  "gflops_per_image": 1.004283904,
+  "ms_per_image_gpu": 0.5424428236437961,
+  "ms_per_image_cpu": null,
+  "warmup": 20,
+  "iters": 100
+}

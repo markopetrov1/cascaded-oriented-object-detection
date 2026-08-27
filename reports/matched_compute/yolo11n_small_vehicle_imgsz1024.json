@@ -1,0 +1,30 @@
+[
+  {
+    "label": "yolo11n_small_vehicle_imgsz1024",
+    "threshold": 0.0,
+    "filter_rate": 0.0,
+    "gate_recall_on_positive_tiles": 1.0,
+    "mAP@0.50": 0.43157811775921207,
+    "mAP@0.55": 0.41062234903724115,
+    "mAP@0.60": 0.3758815353807829,
+    "mAP@0.65": 0.3214218648813201,
+    "mAP@0.70": 0.24131732222480862,
+    "mAP@0.75": 0.14164351190620397,
+    "mAP@0.80": 0.05546245431058532,
+    "mAP@0.85": 0.010625985156439586,
+    "mAP@0.90": 0.0007914856407736909,
+    "mAP@0.95": 4.865351400004865e-05,
+    "mAP@0.5:0.95": 0.19893932798113675,
+    "n_classes": 1,
+    "gate_gflops": 0.0,
+    "detector_gflops": 34960.2,
+    "total_gflops": 34960.2,
+    "gate_latency_ms": 0.0,
+    "detector_latency_ms": 3907.3723532608697,
+    "total_latency_ms": 3907.3723532608697,
+    "n_tiles": 5297,
+    "n_accepted": 5297,
+    "calibration": "identity",
+    "gate": "real"
+  }
+]
