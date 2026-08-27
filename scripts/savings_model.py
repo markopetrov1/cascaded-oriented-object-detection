@@ -157,14 +157,46 @@ def oan_domains() -> list[dict[str, Any]]:
     return out
 
 
+# Positive rates are derived from the tiling metadata, which is tens of megabytes
+# per class and not redistributed. They are cached here so the results in
+# reports/ can be checked without the tiled dataset present, which is what makes
+# the no-GPU path in the README actually work from a clean checkout.
+POSRATE_CACHE = Path("reports/positive_rates.json")
+
+
+def _load_cache() -> dict:
+    if POSRATE_CACHE.exists():
+        return json.load(open(POSRATE_CACHE))
+    return {}
+
+
+def _save_cache(cache: dict) -> None:
+    POSRATE_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    POSRATE_CACHE.write_text(json.dumps(cache, indent=2, sort_keys=True) + "\n")
+
+
 def positive_rate(metadata: str | Path, split: str, classes: Iterable[str]) -> tuple[float, int, int]:
     """Fraction of tiles in `split` containing at least one instance of `classes`.
 
     Read from the tiling metadata rather than inferred from an oracle run, so it
     is defined even for domains with no oracle rows (this is what left HRSC2016
-    out of reports/figures/sparsity_ceiling.json).
+    out of reports/figures/sparsity_ceiling.json). When the metadata is absent,
+    as it is in a fresh checkout, the cached value is used instead.
     """
-    wanted = set(classes)
+    wanted = sorted(set(classes))
+    key = f"{metadata}|{split}|{','.join(wanted)}"
+    cache = _load_cache()
+
+    if not Path(metadata).exists():
+        if key in cache:
+            c = cache[key]
+            return c["p_plus"], c["n_positive"], c["n_tiles"]
+        raise SystemExit(
+            f"{metadata} is absent and no cached positive rate for {key!r}.\n"
+            "Either place the tiled dataset, or regenerate reports/positive_rates.json "
+            "on a machine that has it."
+        )
+
     n = n_pos = 0
     with open(metadata) as fh:
         for line in fh:
@@ -172,10 +204,13 @@ def positive_rate(metadata: str | Path, split: str, classes: Iterable[str]) -> t
             if row["split"] != split:
                 continue
             n += 1
-            if wanted & set(row.get("class_counts", {})):
+            if set(wanted) & set(row.get("class_counts", {})):
                 n_pos += 1
     if n == 0:
         raise ValueError(f"no tiles for split={split!r} in {metadata}")
+
+    cache[key] = {"p_plus": n_pos / n, "n_positive": n_pos, "n_tiles": n}
+    _save_cache(cache)
     return n_pos / n, n_pos, n
 
 

@@ -45,6 +45,18 @@ def empty_tile_rate(metadata: str, splits: tuple[str, ...]) -> dict[str, Any]:
     annotated instance, not on one selected class. The DOTA test split is
     excluded because its labels are not public.
     """
+    cache_path = Path("reports/empty_tile_rates.json")
+    key = "|".join(splits)
+    cache = json.load(open(cache_path)) if cache_path.exists() else {}
+
+    if not Path(metadata).exists():
+        if key in cache:
+            return cache[key]
+        raise SystemExit(
+            f"{metadata} is absent and no cached empty-tile rate for {key!r}. "
+            "Regenerate reports/empty_tile_rates.json where the tiling exists."
+        )
+
     n = n_empty = 0
     with open(metadata) as fh:
         for line in fh:
@@ -54,7 +66,11 @@ def empty_tile_rate(metadata: str, splits: tuple[str, ...]) -> dict[str, Any]:
             n += 1
             if not row.get("class_counts"):
                 n_empty += 1
-    return {"n_tiles": n, "n_empty": n_empty, "empty_rate": n_empty / n}
+    out = {"n_tiles": n, "n_empty": n_empty, "empty_rate": n_empty / n}
+    cache[key] = out
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(cache, indent=2, sort_keys=True) + "\n")
+    return out
 
 
 def fps_gain_to_time_saved(fps_before: float, fps_after: float) -> float:

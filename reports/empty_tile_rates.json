@@ -1,0 +1,17 @@
+{
+  "train": {
+    "empty_rate": 0.3034478379579656,
+    "n_empty": 4779,
+    "n_tiles": 15749
+  },
+  "train|val": {
+    "empty_rate": 0.3086572270265133,
+    "n_empty": 6496,
+    "n_tiles": 21046
+  },
+  "val": {
+    "empty_rate": 0.32414574287332454,
+    "n_empty": 1717,
+    "n_tiles": 5297
+  }
+}

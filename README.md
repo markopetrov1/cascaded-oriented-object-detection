@@ -1,268 +1,158 @@
-# Cascaded RS Detection
+# Cascaded oriented object detection
 
-Cascaded object detection for remote-sensing imagery: a tile-level binary gate
-followed by an oriented-bounding-box detector. The contribution is the
-*systematic study* of when, how, and why cascading helps in RS — see
-[PROJECT_PLAN.md](PROJECT_PLAN.md) for the full research plan and
-[~/.claude/plans/here-i-have-a-starry-sunbeam.md](../.claude/plans/here-i-have-a-starry-sunbeam.md)
-for the phased implementation plan.
+Code and results for *Rethinking Reported Speedups in Cascaded Oriented Object
+Detection* (Petrov, Pandilova, Trajanovski, Dimitrovski, Kitanovski).
 
-## Setup
+The paper argues that the speedup a tile gate can achieve is set by the data
+rather than by the gate. A cascade cannot skip more of the detector's work than
+the share of tiles that are empty, and that share is measurable before any gate
+is trained. This repository contains the pipeline that produced every number in
+the paper, and the scripts that turn those results back into the manuscript's
+tables and figures.
+
+## What is here
+
+```
+src/                 tiling, gate models, calibration, cascade evaluation, OAN head
+scripts/             one entry point per stage, plus the paper generators
+configs/             dataset and experiment configs (per-class and generated)
+reports/             all derived results: cascade sweeps, speed, calibration, figures
+docs/                a note for co-authors on how the argument changed
+```
+
+The manuscript sources are not in this repository. What is here is the code and
+the derived results the manuscript is built from, which is what a reader needs in
+order to check it. The generators below write their output into a local `paper/`
+directory, creating it if necessary. Training logs are not tracked either; they
+are large and machine specific.
+
+## Reproducing the paper without a GPU
+
+Everything the manuscript claims is derived from `reports/`, which is committed.
+If you only want to check that the paper's numbers follow from the released
+results, no GPU and no dataset are needed:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+
+python scripts/savings_model.py          # the cost identity, checked against every run
+python scripts/sparsity_ceiling.py       # the envelope, 19 gating tasks
+python scripts/prior_work_prediction.py  # published speedups read through the envelope
+python scripts/flops_latency_gap.py      # arithmetic against wall-clock
+python scripts/paper_numbers.py          # -> paper/generated_numbers.tex
+python scripts/paper_tables.py           # -> paper/generated_tables.tex
+python scripts/paper_tables_detail.py    # -> paper/generated_tables_detail.tex
+PYTHONPATH=scripts python scripts/paper_figures_law.py
 ```
 
-Hardware: `Quadro RTX 8000` (48GB, Turing → FP16 AMP). Driver 580.173.02,
-CUDA 13.0; the environment above resolves to `torch 2.13.0+cu130`, verified
-working on this GPU.
+Running that chain twice reproduces every generated artifact byte for byte, which
+is the property the manuscript relies on when it claims its numbers are not typed
+by hand.
 
-## One-shot pipeline
+`savings_model.py` is the one to run first. It recovers every term of the cost
+identity for all measured operating points and checks the result against the
+recorded compute. It prints the worst residual, which should be at
+floating-point level. If it is not, something upstream is wrong and nothing
+derived from it should be trusted.
+
+## Reproducing the experiments from scratch
+
+This needs the imagery and a GPU. We used a single NVIDIA Quadro RTX 8000.
+
+Paths in `configs/datasets/*.yaml` and in the metadata fields of
+`reports/speed/*.json` carry a `<REPO_ROOT>` placeholder rather than the machine
+they were produced on. `prepare_data.py` rewrites the dataset configs with real
+paths when you tile the imagery, and nothing numeric depends on the placeholder.
+
+**Data.** DOTA-1.5 and HRSC2016 are not redistributed here. Download them from
+their maintainers and place DOTA at `data/raw/DOTA/{train,val,test}/` with
+`images/` and `labelTxt/` subdirectories, and HRSC2016 at `data/raw/HRSC2016/`.
+The tiling script reproduces our exact tile set from them at the tile size and
+overlap below.
+
+**Checkpoints.** Detector and gate weights are not tracked here, for size. They
+are available from the corresponding author on request.
+
+**Tiling.** Tiles are 1024 pixels square with 200 pixels of overlap, which is the
+standard DOTA protocol and the same one the systems we compare against use. Tile
+size and overlap change the positive-tile rate directly, so changing them changes
+the envelope; keep them fixed when comparing against our numbers.
 
 ```bash
-DEVICE=0 EPOCHS=100 GATE_EPOCHS=20 BATCH=16 scripts/run_all.sh full
+python scripts/prepare_data.py --raw-dir data/raw/DOTA \
+    --out-dir data/processed/dota_ships --tile-size 1024 --overlap 200 \
+    --positive-classes ship \
+    --dataset-yaml configs/datasets/dota_ships.yaml \
+    --stats-out reports/sparsity_ships.json
 ```
 
-Or one stage at a time — see `scripts/run_all.sh` for the menu.
+The tile grid does not depend on which class you gate for, so one tiled copy
+serves every gating task. `scripts/make_gate_labels.py` derives the per-class
+binary labels from the tiling metadata in seconds rather than re-tiling, and
+`scripts/make_gate_configs.py` writes one training config per task.
 
-## Data preparation
-
-DOTA must be downloaded separately and placed at `data/raw/DOTA/{train,val,test}/`
-with `images/` and `labelTxt/` subdirs (DOTA's standard layout).
+**Detector.** One multi-class YOLO11m-OBB serves all gating tasks:
 
 ```bash
-scripts/run_all.sh prepare
-# or, manually:
-python scripts/prepare_data.py \
-  --raw-dir data/raw/DOTA \
-  --out-dir data/processed/dota_ships \
-  --tile-size 1024 --overlap 200 \
-  --positive-classes ship \
-  --dataset-yaml configs/datasets/dota_ships.yaml \
-  --stats-out reports/sparsity_ships.json \
-  --splits-out configs/splits/geographic_v1.yaml
+python scripts/train_detector.py \
+    --config configs/experiments/baseline_yolo11m_multiclass_obb.yaml --device 0
 ```
 
-Outputs:
+Note that the public `yolo11m-obb` weights are already DOTA-pretrained, so this
+fine-tunes rather than trains from scratch. Use `patience=50`; at the default of
+10 the run stops around epoch 12 while the pretrained features are still
+adapting.
 
-- `data/processed/dota_ships/images/{train,val,test}/<tile>.png`
-- `data/processed/dota_ships/labels/{train,val,test}/<tile>.txt` — YOLO-OBB labels (ship-only when `--positive-classes ship`)
-- `data/processed/dota_ships/gate_labels/{train,val,test}/<tile>.txt` — binary `0`/`1`
-- `data/processed/dota_ships/metadata/tiles.jsonl` — one row per tile with `imagesource`, `gsd`, `is_positive`, ...
-- `reports/sparsity_ships.json` (+ `.csv`) — per-class / per-imagesource / per-split positive rates and distributions
-- `configs/splits/geographic_v1.yaml` — stem-disjoint, imagesource-stratified train/val/test partition
-
-## Pillar 1 — Pareto / Economics
+**Gates and sweep.**
 
 ```bash
-scripts/run_all.sh train_baselines       # YOLO11 n/s/m  (note: the trained models are YOLO11-OBB; YOLO26 was the
-                                         #                original plan but Ultralytics 8.4.x ships YOLO11)
-scripts/run_all.sh train_gates           # 6 gate backbones (resnet18/50, mbv3 s/l, effb0, tiny)
-scripts/run_all.sh score_gates           # produce per-gate score JSONLs
-scripts/run_all.sh predict_baseline      # cache YOLO11m predictions over all tiles
-scripts/run_all.sh eval_cascade          # full Pareto sweep incl. oracle baseline
+python scripts/make_gate_labels.py --all --min-positive-val 100
+python scripts/make_gate_configs.py
+scripts/run_unattended_sweep.sh          # detector pass, then one eval per task
 ```
 
-The cascade composition is *cached*: `eval_cascade` reads tile scores +
-already-run detector outputs and re-applies thresholds in a tight loop. One
-detector pass over the tiles is enough for hundreds of Pareto points.
+The cascade evaluation caches detector predictions and polygon IoU once per
+tile, so a threshold sweep costs no further inference. That is what makes a
+19-task sweep affordable.
 
-`eval_cascade.py` now supports `--all-calibrations`: precompute the IoU
-matrices once per gate, then sweep all four calibrations in a single process
-(4× speedup vs running each calibration separately). It also reports
-`mAP@0.5:0.95` as the mean over a 10-point IoU sweep `(0.50, 0.55, …, 0.95)`,
-not the previous degenerate `(0.50,)` single-IoU value.
-
-## Pillar 2 — Calibration
-
-Methods 1–4 (naive, recall-targeted, mAP-grid, temperature/Platt/isotonic) live
-in `src/calibration.py`. Method 5 (context-adaptive) and Method 6 (learned
-threshold MLP) consume cheap per-tile features:
+**Fused gate.** The reimplementation of the objectness head of Xie et al.
+(*Sci. China Inf. Sci.* 2023) lives in `src/oan.py`:
 
 ```bash
-python scripts/extract_tile_features.py --data-root data/processed/dota_ships --split val \
-    --out reports/tile_features/val.jsonl
+python scripts/train_oan.py --data configs/datasets/dota_ships.yaml \
+    --weights yolo11m-obb.pt --epochs 50 --patience 50 --lambda-oan 3.0 --device 0
+python scripts/score_tiles_oan.py --weights <run>/weights/best.pt \
+    --data-root data/processed/dota_ships --out reports/oan/gate_oan_ships_val.jsonl
 ```
 
-`eval_cascade.py --calibration {temperature|platt|isotonic}` fits the calibrator
-on the supplied scores (or `--calibration-fit-scores`) and threshold-sweeps the
-calibrated probs.
+Compare against a detector trained for the same number of epochs. The per-class
+baselines elsewhere in this repository stopped early under `patience=10`, and
+comparing a 50-epoch joint model against them confounds co-design with training
+budget.
 
-## Pillar 3 — Co-design
+## Things that will trip you up
 
-```bash
-scripts/run_all.sh codesign      # shared / early-exit / relaxed (Gumbel-softmax)
-scripts/run_all.sh distill       # detector → gate distillation
-```
+The Ultralytics user settings may point `runs_dir` somewhere unwritable. Every
+entry point calls `configure_ultralytics_settings()` before importing
+ultralytics, which redirects it to a project-local file; if you write a new
+script, do the same, and do it *before* the import.
 
-`src/codesign.py` provides:
-- `SharedBackboneCascade` — one backbone, two heads
-- `EarlyExitWrapper` — binary head on an early backbone block, conditional continuation
-- `RelaxedGatingCascade` — Gumbel-softmax + straight-through estimator. `forward()` delegates to `forward_train()` so the module is callable from the standard training loop.
-- `soft_target_from_detector` + `distillation_loss` — detector → gate distillation
+In Ultralytics training, `save` controls model checkpointing, not image saving.
+Setting it false produces a run with an empty `weights/` directory. The large
+preview JPEGs come from `predict save=True`, which is a different flag on a
+different mode.
 
-`scripts/train_codesign.py` uses a **gate-warmup loss schedule** by default
-to avoid the failure mode where the dense per-cell BCE in `SimpleOBBHead`
-corrupts the shared-backbone features the gate task needs:
+Ultralytics resolves `project` against its own `runs_dir`, so a run does not
+necessarily land at `<project>/<name>`. `scripts/train_oan.py` records its
+resolved output directory to `runs/oan_last_save_dir.txt` for this reason.
 
-- Epochs 1–`--gate-warmup-epochs` (default 5): `obb_weight = 0` (gate-only)
-- Next 3 epochs: linear ramp from 0 → `--obb-weight` (default `0.1`)
-- Remaining epochs: full `--obb-weight`
+Ultralytics resolves image paths before deriving label paths, so a directory
+symlink from one dataset's `images/` to another's will silently pull labels from
+the symlink target. Use hard links, which share the inode and cannot be
+redirected.
 
-Set `--gate-warmup-epochs 0 --obb-weight 1.0` to reproduce the original
-joint-loss-from-epoch-1 behavior; without the warmup the joint loss collapses
-gate PR-AUC to 0.10–0.30 across all backbones (documented negative result).
+## Citation
 
-## Pillar 4 (lens) — RS specifics
-
-```bash
-scripts/run_all.sh stratified  # re-run eval, stratified by gsd/size/imagesource/boundary
-```
-
-Each stratum run writes a sibling `<out>.stratified_<stratum>.{json,csv}` file
-with one row per (threshold, bucket). Each row carries `mAP@0.50` … `mAP@0.95`,
-`mAP@0.5:0.95`, plus the per-bucket `filter_rate` and
-`gate_recall_on_positive_tiles` — enough to reconstruct a Pareto curve inside
-each bucket, not just the per-bucket mAP at one fixed gate threshold.
-
-## Speed / FLOPs benchmarking
-
-`scripts/benchmark_speed.py` measures real GFLOPs and per-image latency for
-the trained detector and gate models on the target hardware (Quadro RTX 8000),
-replacing the previously hardcoded `--gate-flops-g 1.8 --detector-flops-g 91`
-constants used by `eval_cascade.py`.
-
-```bash
-# Detector
-python3 scripts/benchmark_speed.py --mode detector \
-    --weights runs/obb/runs/baseline_yolo11m_dota_ships_obb/weights/best.pt \
-    --imgsz 1024 --batch-size 8 --device cuda:1 \
-    --warmup 10 --iters 50 --label yolo11m_obb \
-    --out reports/speed/yolo11m_obb.json
-
-# Gate (one per backbone)
-python3 scripts/benchmark_speed.py --mode gate \
-    --gate-config configs/experiments/gate_resnet18.yaml \
-    --weights runs/gate_resnet18/best.pt \
-    --imgsz 256 --batch-size 32 --device cuda:1 \
-    --warmup 20 --iters 100 --label gate_resnet18 \
-    --out reports/speed/gate_resnet18.json
-```
-
-Each run writes a JSON with `gflops_per_image`, `ms_per_image_gpu`, and
-optionally `ms_per_image_cpu` (`--include-cpu`). Plug those numbers into the
-matching `--gate-flops-g`/`--gate-latency-ms`/`--detector-flops-g`/
-`--detector-latency-ms` flags of `eval_cascade.py` for a re-run that produces
-publication-grade compute numbers.
-
-Buckets are emitted as `<out>.stratified_<stratum>.csv`.
-
-## Cross-dataset robustness
-
-```bash
-scripts/run_all.sh hrsc        # zero-shot HRSC2016 evaluation
-```
-
-## Reports & figures
-
-```bash
-scripts/run_all.sh report
-# Then open notebooks/01_master_pareto.ipynb for the canonical figure.
-```
-
-## Repo layout
-
-```
-src/
-  datasets/      vendored tiling/converters/validation + extended dota.py + hrsc2016.py
-  experiments/   vendored Ultralytics trainer/evaluator/metrics/speed
-  utils/         vendored paths/seed/logging/hardware/reproducibility/ultralytics_env
-  splits.py      geographic split builder + filelist materialization
-  sparsity.py    tile-level sparsity statistics
-  tile_features.py  cheap per-tile features (RGB stats / Sobel / entropy / GSD bucket)
-  gate.py        gate models, dataset, training, scoring (Phase 2 spine)
-  calibration.py 6 calibration methods + ECE/MCE
-  cascade.py     runtime composition (gate -> conditional detector)
-  cascade_eval.py end-to-end mAP-at-compute + stratified eval + oracle gate
-  codesign.py    shared backbone / early-exit / distillation / relaxed gating
-configs/
-  datasets/      dota_ships.yaml, hrsc2016_ships.yaml (rewritten by prepare scripts)
-  splits/        geographic_v1.yaml
-  experiments/   3 baselines + 6 gate configs
-scripts/
-  prepare_data.py        tile + binary + meta + sparsity + split (one entry)
-  prepare_hrsc.py        HRSC2016 -> cascade layout
-  train_detector.py      YOLO-OBB training wrapper
-  train_gate.py          gate training
-  train_codesign.py      Pillar 3 variants
-  train_distill.py       detector -> gate distillation
-  score_tiles.py         emit per-tile gate scores JSONL
-  extract_tile_features.py  per-tile features for context-adaptive
-  eval_cascade.py        per-config Pareto rows; supports --all-calibrations and --stratum
-  benchmark_speed.py     measured GFLOPs + per-image latency (detector or gate)
-  run_pareto.py          aggregate + plot
-  run_experiment.sh      ships pipeline orchestrator with sentinel-based crash recovery
-  run_experiment_class.sh  per-class pipeline orchestrator (planes / small_vehicle / arbitrary CLASS_TAG)
-  run_all.sh             one-stage / full orchestration
-notebooks/
-  01_master_pareto.ipynb  master compute-accuracy figure
-data/  runs/  reports/  tests/
-```
-
-## Tests
-
-```bash
-pytest tests/ -q
-```
-
-21 tests covering tiling, polygon clipping, header parsing, calibration math,
-threshold strategies, cascade composition, polygon mAP, oracle gate, geographic
-split disjointness, sparsity statistics, and tile-feature extraction.
-
-## Status
-
-Pillars 1–4 are complete end-to-end on three classes (`ships`, `planes`,
-`small_vehicle`). Per-class outputs:
-
-- 6 trained gate backbones + 1 YOLO11n/s/m baseline trio
-- Cascade Pareto: 6 backbones × **5 calibrations** (identity / temperature /
-  Platt / isotonic / **context_adaptive @ recall=0.95**) + oracle, on val split
-- Stratified Pareto inside size / GSD / imagesource / boundary buckets,
-  with per-bucket `filter_rate` and `gate_recall_on_positive_tiles`
-- Co-design: `shared`, `early_exit`, `relaxed` variants trained with the
-  gate-warmup schedule
-- Distillation on all three classes (clean negative result, PR-AUC ≈ 0.10–0.30
-  vs 0.78–0.94 for binary-trained gates)
-- Measured FLOPs/latency via `scripts/benchmark_speed.py` (per-backbone
-  GFLOPs and ms/img on Quadro RTX 8000 → `reports/speed/*.json`); cascade
-  evals consume these directly instead of the previously hardcoded constants
-
-## TODO before paper submission
-
-- [ ] **HRSC2016 zero-shot cross-dataset eval** (research plan §7.4) — load-bearing
-      held-out evaluation given the in-DOTA test-set limitation below.
-- [ ] **In-DOTA test-set evaluation is currently not possible.** Skipped.
-      `data/processed/dota_*/images/test/` was populated from DOTA-v1.5's official
-      test split, which has no public ground truth (held by the benchmark server).
-      All 10,833 test labels are zero-byte placeholders, so mAP cannot be computed
-      on test and Platt/isotonic calibration fits crash with `"only one class: 0"`.
-      The geographic split in `configs/splits/geographic_v1.yaml` was generated
-      with 489 held-out test stems from DOTA train, but those stems were never
-      actually used to materialize tiles. To enable in-DOTA test, either:
-      (a) re-run `prepare_data.py` so the geographic split partitions DOTA train
-          into train/val/test and re-train the YOLO11m detector on the
-          geographic-train subset only (~40 h scope), or
-      (b) report val-only and rely on HRSC2016 as the held-out test (standard
-          DOTA practice for many published papers).
-- [ ] **YOLO11m re-train with `patience=50`.** The current YOLO11m baselines
-      early-stopped at epochs 11–14 because `patience=10` triggered before the
-      ImageNet-pretrained weights had a chance to fine-tune. Re-running with
-      `patience=50` would give a stronger full-pass baseline (~10 h/class on
-      free GPU). Cascade ranking is unaffected (savings are relative), but the
-      headline mAP numbers would improve.
-
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) §14 checklist and the implementation
-plan at `~/.claude/plans/here-i-have-a-starry-sunbeam.md` for the full
-pre-submission audit.
+A BibTeX entry will be added once the paper has a venue. Until then, cite the
+repository.

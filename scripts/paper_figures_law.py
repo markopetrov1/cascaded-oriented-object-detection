@@ -140,8 +140,9 @@ def figure_ceiling_v2() -> None:
     seen_fam = set()
     plotted = 0
     for dom in summary.values():
-        if dom["domain"] == "DOTA-ships/YOLO11n":
-            continue  # same tiles as DOTA-ships, different detector; shown in the text
+        if dom["domain"] in {"DOTA-ships/YOLO11n", "OAN-joint/ships",
+                             "Independent/ships-matched"}:
+            continue  # same tile population as DOTA-ships; reported in the text
         best = dom["by_tolerance_rule"]["absolute"]
         if not best:
             continue

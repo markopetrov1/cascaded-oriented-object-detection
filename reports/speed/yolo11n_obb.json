@@ -1,0 +1,13 @@
+{
+  "label": "yolo11n_obb",
+  "mode": "detector",
+  "weights": "runs/obb/runs/baseline_yolo11n_dota_ships_obb/weights/best.pt",
+  "imgsz": 1024,
+  "batch_size": 1,
+  "device": "cuda:1",
+  "gflops_per_image": 17.115414528000002,
+  "ms_per_image_gpu": 15.01132850535214,
+  "ms_per_image_cpu": null,
+  "warmup": 10,
+  "iters": 50
+}

@@ -1,0 +1,22 @@
+{
+  "data/processed/dota_planes/metadata/tiles.jsonl|val|plane": {
+    "n_positive": 688,
+    "n_tiles": 5297,
+    "p_plus": 0.12988484047574098
+  },
+  "data/processed/dota_ships/metadata/tiles.jsonl|val|ship": {
+    "n_positive": 921,
+    "n_tiles": 5297,
+    "p_plus": 0.17387200302057768
+  },
+  "data/processed/dota_small_vehicle/metadata/tiles.jsonl|val|small vehicle": {
+    "n_positive": 1546,
+    "n_tiles": 5297,
+    "p_plus": 0.29186331885973194
+  },
+  "data/processed/hrsc2016/metadata/tiles.jsonl|test|ship": {
+    "n_positive": 597,
+    "n_tiles": 610,
+    "p_plus": 0.978688524590164
+  }
+}

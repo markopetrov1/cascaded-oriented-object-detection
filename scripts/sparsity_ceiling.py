@@ -41,7 +41,7 @@ TOLERANCE_RULE = "absolute"
 # The YOLO11n arm is the same tile population as DOTA-ships with a different
 # detector, so it would plot as a duplicate x-position; it is reported in the
 # orthogonality section instead.
-EXCLUDE = {"DOTA-ships/YOLO11n"}
+EXCLUDE = {"DOTA-ships/YOLO11n", "OAN-joint/ships", "Independent/ships-matched"}
 
 
 def main() -> int:

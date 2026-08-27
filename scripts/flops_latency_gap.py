@@ -76,10 +76,15 @@ def main() -> int:
     summary = json.load(open(SUMMARY))
     g_flops = r["g_flops"]
 
+    # The fused-gate arms share the detector's forward pass, so their overhead
+    # term is zero in every currency. Re-pricing them with the decoupled gate's
+    # latency ratio would produce a number that contradicts \S fusing, so they
+    # are excluded here and reported there instead.
+    FUSED_OR_MATCHED = {"OAN-joint/ships", "Independent/ships-matched"}
     domains = []
     for d in summary:
         best = d["by_tolerance_rule"]["absolute"]
-        if not best:
+        if not best or d["domain"] in FUSED_OR_MATCHED:
             continue
         # Recover the accept rate from the FLOPs-currency saving, then re-price it.
         accept = 1.0 - best["saved_detector_only"] - g_flops

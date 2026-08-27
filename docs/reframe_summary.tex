@@ -1,0 +1,136 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage{parskip}
+\setlength{\emergencystretch}{2em}
+
+\title{What Changed in the Reframe\\[2pt]
+\large A note for co-authors on the cascaded oriented-detection manuscript}
+\author{}
+\date{27 August 2026}
+
+\begin{document}
+\maketitle
+\vspace{-2.2em}
+
+\section*{The short version}
+
+The previous draft was a survey of our own design space. It is now an argument
+about other people's results. The experiments are largely the same; what changed
+is what they are used to claim, and four numbers that turned out to be wrong.
+
+\section*{The old argument}
+
+\textit{When Does Tile Gating Earn Its Complexity? An Empirical Study for
+Oriented Detection in Remote Sensing}, with four stated contributions: a Pareto
+sweep over gate backbone $\times$ calibration $\times$ class; an empirical
+``sparsity ceiling'' that closely tracked the empty-tile rate to within
+$\pm 5$ percentage points on four data points; an orthogonality result showing
+that gating compounds with detector size; and two negative co-design results,
+namely that detector-to-gate distillation and joint shared-backbone training both
+fail.
+
+Its logic was that the architecture is not novel, so the contribution is
+measuring it carefully. That placed us in the same category as OAN
+(Xie et al., \textit{Sci. China Inf. Sci.} 2023) and R$^2$-CNN (Pang et al.,
+\textit{IEEE TGRS} 2019), doing a similar thing more thoroughly. Thoroughness is
+not a defence against a paper that already did the thing, which is why the
+positioning was weak.
+
+\section*{The new argument}
+
+\textit{Rethinking Reported Speedups in Cascaded Oriented Object Detection}. The
+claim is that the speedup any tile gate can achieve is set by the data rather
+than by the gate, and that this accounts for the range of speedups already
+published. Six things changed substantively.
+
+\textbf{The ceiling became an identity rather than a correlation.} Previously
+savings ``closely tracked'' $1 - p_+$ within $\pm 5$ pp across four points. The
+per-tile cost is now written exactly, and the accept rate factors through the
+positive-tile rate and the gate's true and false positive rates. The $\pm 5$ pp
+does not shrink, it disappears, because what was residual error is now three
+named terms. The identity reproduces all 3990 measured operating points to
+floating-point precision.
+
+\textbf{The ceiling stopped being a ceiling.} The old draft reported savings
+above its own ceiling, 87.1\,\% against 82.6\,\% on ships, and attributed the
+excess to tile overlap. The excess is exactly the compute saved by rejecting
+tiles that did contain objects. The headline therefore changed from ``we save
+87\,\%'' to ``82\,\% is free and the remainder is paid for in missed
+detections''. On HRSC2016, 94\,\% of an apparent saving is discarded detections.
+This finding was previously hidden inside a number we were pleased with.
+
+\textbf{Competing papers became supporting evidence.} OAN's own patch-removal
+ablation traces our envelope on their data, holding recall above 99.7\,\% up to
+30\,\% removal and eroding past it, which is where the empty-patch rate we
+measure independently sits. Their headline speedup is what a gating task with
+$p_+ = 0.68$ permits. Three published systems, skipping 35\,\%, 65\,\% and about
+99\,\% of tiles respectively, each sit at their own $1 - p_+$.
+
+\textbf{A cost dimension we had suppressed became a section.} Our own wall-clock
+measurements contradicted the GFLOPs story since May and the draft simply never
+cited them. The gate is 0.33\,\% of the detector in arithmetic and 27.6\,\% in
+single-tile latency, a factor of 84. Re-priced in latency, the HRSC2016 saving
+becomes negative.
+
+\textbf{One contribution was retracted.} Reimplementing OAN's actual objectness
+head shows that joint training works: it costs nothing in detection accuracy,
+produces a better gate than training one separately, and removes the overhead
+term entirely. Our earlier negative result reflected the head we built, not
+co-design. The distillation negative result stands.
+
+\textbf{Evidence grew from four points to nineteen gating tasks} spanning
+empty-tile rates from 2.4\,\% to 97.9\,\%, built from DOTA-1.5 classes, a
+sixteen-class union, and the HRSC2016 transfer.
+
+\section*{Numbers that changed, and why}
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{p{4.4cm}p{4.0cm}p{5.6cm}}
+\toprule
+Quantity & Was & Now, and the reason \\
+\midrule
+mAP tolerance & stated 3 pp, applied 97\,\% relative &
+3 pp throughout. Ships 87.1 to 88.2\,\%, planes 83.2 to 85.7\,\%,
+small-vehicle 69.0 to 76.0\,\% \\
+Full-pass baseline & each class charged for a different arbitrary gate &
+974{,}780 GFLOPs for all three. The old value depended on filesystem ordering \\
+HRSC2016 positive rate & 94\,\%, hardcoded &
+97.9\,\% from the labels. HRSC was also absent from a figure whose caption
+claimed four datasets \\
+Object loss at $\tau = 0.5$ & planes 6.7\,\%, small-vehicle 7.4\,\% &
+11.9\,\% for both. The old figures used gates appearing nowhere else in the
+paper \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{What survived unchanged}
+
+Classical score calibration reduces expected calibration error substantially and
+does not move the cascade frontier, for the mechanical reason that a threshold
+sweep already extracts everything the score ordering contains. The distinction
+between calibrating probabilities and selecting an operating point stands.
+Detector-to-gate distillation fails, for the reason previously identified.
+Sensor source dominates the stratified picture, with mAP varying roughly
+fiftyfold across sources on ships. Gating compounds with detector size.
+
+\section*{Status}
+
+Ten pages, fifteen sections, six figures, two tables, sixty-nine references, all
+cited and all verified against the published record. Every number in the prose is
+generated from the results directory rather than typed, so a stale value becomes
+a build-time change rather than a silent inconsistency.
+
+The one experiment still worth running before submission is a seed and
+$\lambda$ sweep on the fused-gate comparison. Its advantage in compute saved is
+2.3 pp, which is within plausible seed variation, so the manuscript claims the
+qualitative result and explicitly declines to claim the margin.
+
+\end{document}

@@ -13,6 +13,11 @@ OUT = Path("paper/generated_tables.tex")
 FIG = Path("reports/figures")
 SCORES = Path("reports/gate_sweep_scores")
 
+# Arms reported in the fused-gate section rather than the sweep: they share
+# DOTA-ships' tile population, so they duplicate its x-position in the envelope
+# and are not distinct gating tasks.
+CODESIGN_ARMS = {"OAN-joint/ships", "Independent/ships-matched"}
+
 PRETTY = {
     "DOTA-ships": "ship (per-class det.)",
     "DOTA-planes": "plane (per-class det.)",
@@ -49,6 +54,8 @@ def main() -> int:
         if not best:
             continue
         name = d["domain"]
+        if name in CODESIGN_ARMS:
+            continue
         if name.startswith("sweep/"):
             label = name[len("sweep/"):]
             key = label
@@ -94,6 +101,7 @@ def main() -> int:
         )
     L += [r"\bottomrule", r"\end{tabular}", r"\end{table*}", ""]
 
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(L) + "\n")
     print(f"  wrote {OUT} with {len(rows)} rows")
     return 0

@@ -43,6 +43,11 @@ def main() -> int:
     cmd("detlatms", fmt(cr["detector_ms"]["1"] if "1" in cr["detector_ms"] else list(cr["detector_ms"].values())[0], 2))
     cmd("gatelatms", fmt(cr["gate_ms"]["1"] if "1" in cr["gate_ms"] else list(cr["gate_ms"].values())[0], 2))
     cmd("gflopsratio", fmt(100 * cr["g_flops"], 2))
+    # The small detector used in the orthogonality section, measured rather than
+    # taken from the vendor's figure at a different input size.
+    _n = Path("reports/speed/yolo11n_obb.json")
+    if _n.exists():
+        cmd("detngflops", fmt(json.load(open(_n))["gflops_per_image"], 2))
     for key, name in (("batch 1", "one"), ("batch 128/16", "batched")):
         cmd(f"latratio{name}", fmt(100 * cr["g_latency"][key], 2))
     cmd("latratiofactor", fmt(cr["g_latency"]["batch 1"] / cr["g_flops"], 0))
