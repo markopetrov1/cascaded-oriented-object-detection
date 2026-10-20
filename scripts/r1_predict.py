@@ -43,9 +43,15 @@ def main() -> int:
     p.add_argument("--imgsz", type=int, default=1024)
     p.add_argument("--conf", type=float, default=0.001)
     p.add_argument("--iou", type=float, default=0.7, help="NMS IoU, the Ultralytics default")
-    p.add_argument("--max-det", type=int, default=1000)
+    # 10000, not Ultralytics' validation default of 300 or the 1000 first tried
+    # here: a few dense DOTA tiles (harbours, parking lots) carry more than 1000
+    # detections above conf 0.25, so a cap of 1000 still truncated them.
+    p.add_argument("--max-det", type=int, default=10000)
     p.add_argument("--batch", type=int, default=8)
     p.add_argument("--device", default="1")
+    p.add_argument("--redo-capped", type=int, default=0,
+                   help="re-predict only tiles whose existing label file has at least this many "
+                        "rows (i.e. hit an earlier max_det), overwriting them")
     args = p.parse_args()
 
     out = Path(args.out)
@@ -53,8 +59,16 @@ def main() -> int:
     labels.mkdir(parents=True, exist_ok=True)
     sources = sorted(q for q in Path(args.source).iterdir()
                      if q.suffix.lower() in (".png", ".jpg", ".jpeg", ".bmp", ".tif"))
-    done = {f.stem for f in labels.glob("*.txt")}
-    todo = [s for s in sources if s.stem not in done]
+    if args.redo_capped:
+        def n_rows(f: Path) -> int:
+            with open(f) as fh:
+                return sum(1 for _ in fh)
+        capped = {f.stem for f in labels.glob("*.txt") if n_rows(f) >= args.redo_capped}
+        todo = [s for s in sources if s.stem in capped]
+        done = set()
+    else:
+        done = {f.stem for f in labels.glob("*.txt")}
+        todo = [s for s in sources if s.stem not in done]
     print(f"[r1_predict] {len(sources)} images, {len(done)} already done, {len(todo)} to go", flush=True)
 
     model = YOLO(args.weights, task="obb")
@@ -79,11 +93,13 @@ def main() -> int:
         if (i // args.batch) % 100 == 0:
             print(f"  {min(i + args.batch, len(todo))}/{len(todo)}  {time.time() - t0:.0f}s", flush=True)
 
+    meta_path = out / ("r1_predict_meta.json" if not args.redo_capped else "r1_predict_recap_meta.json")
     meta = {"weights": args.weights, "source": args.source, "imgsz": args.imgsz,
             "conf": args.conf, "iou": args.iou, "max_det": args.max_det,
             "n_images": len(sources), "seconds_this_run": round(time.time() - t0, 1),
-            "detections_this_run": n_det}
-    (out / "r1_predict_meta.json").write_text(json.dumps(meta, indent=2))
+            "detections_this_run": n_det, "redo_capped": args.redo_capped,
+            "tiles_this_run": len(todo)}
+    meta_path.write_text(json.dumps(meta, indent=2))
     print(f"[r1_predict] done: {meta}", flush=True)
     return 0
 
