@@ -350,6 +350,8 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
             e[c] = {"heldout_mean": float(np.mean(vals)), "heldout_folds": [float(v) for v in vals],
                     "same_split": float(same)}
         out["ece_heldout"][g] = e
+    out["selections"] = {rule: {f: {k: v for k, v in s.items() if k not in ("gi", "ci")}
+                                for f, s in per_f.items()} for rule, per_f in selected.items()}
     if transfer:
         out["transfer"] = transfer_eval(transfer, selected, calibrators, names, gates, model, det_g)
     out["seconds"] = round(time.time() - t0, 1)
