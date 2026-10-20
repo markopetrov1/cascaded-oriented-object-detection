@@ -6,8 +6,10 @@ For one detector cache (scripts/r1_build_cache.py) and one gating task:
 1. Calibration maps are fitted on fold A of DOTA val (configs/splits/r1_val_2fold.yaml).
 2. Every (gate, calibration, threshold) candidate is scored on fold A. Thresholds
    are 200 quantiles of the calibrated fold-A scores rather than 21 fixed values.
-3. The cheapest candidate whose image-level mAP@0.5 (VOC07, DOTA devkit) stays
-   within --budget of fold A's full-pass mAP is selected, with cost given by
+3. The cheapest candidate whose image-level mAP@0.5 stays within --budget of
+   fold A's full-pass mAP is selected (--metric: 101-point interpolation by
+   default, as in the first submission's evaluator; the DOTA devkit's 11-point
+   VOC07 AP is coarse above recall 0.9 and hides recall lost there), with cost given by
    --cost-model: decoupled (g + a) or fused (p + h + a(1 - p)).
 4. That calibrator and threshold are applied to fold B, which is reported.
 5. Folds swap; the two report-fold decisions together cover every tile once,
@@ -50,6 +52,9 @@ GATE_GFLOPS = {"mbv3small": 0.1444, "mbv3large": 0.5609, "resnet18": 4.7635,
 DET_GFLOPS = {"multiclass": 184.17, "shipsp50": 184.02, "yolo11n": 17.12, "oan": 184.16}
 # Shared-backbone cost of the fused OAN head at tap 10 (raw/audit/backbone_share_output.txt).
 FUSED = {"prefix": 101.37, "head": 0.673}
+# Selection metric: name in evaluate(), index in _score_candidate's result, index in BootstrapMAP's.
+METRICS = {"coco": ("mAP50_coco", 6, 1), "voc07": ("mAP50_voc07", 5, 0)}
+SEL = {"metric": METRICS["coco"]}
 
 
 def task_classes(task: str) -> list[int]:
@@ -174,8 +179,8 @@ def bootstrap(cache: EvalCache, acc: np.ndarray, classes: list[int], gate_g: flo
 
 def risk_lower_bound(cache: EvalCache, acc: np.ndarray, classes: list[int], images: np.ndarray,
                      n: int = 200, q: float = 5.0, seed: int = 67) -> float:
-    """Lower q-th percentile of the paired-bootstrap mAP@0.5 (VOC07) change of `acc`
-    against the full pass, resampling the images in `images`."""
+    """Lower q-th percentile of the paired-bootstrap mAP@0.5 change (selection metric)
+    of `acc` against the full pass, resampling the images in `images`."""
     rng = np.random.default_rng(seed)
     full = images[cache.tile_image]
     bf = BootstrapMAP(cache, match(cache, merged_keep(cache, full, classes=classes, images=images),
@@ -187,7 +192,8 @@ def risk_lower_bound(cache: EvalCache, acc: np.ndarray, classes: list[int], imag
     for _ in range(n):
         w = np.zeros(len(images))
         np.add.at(w, rng.choice(idx, len(idx)), 1.0)
-        d.append(bc(w)[0] - bf(w)[0])
+        bi = SEL["metric"][2]
+        d.append(bc(w)[bi] - bf(w)[bi])
     return float(np.percentile(d, q))
 
 
@@ -251,11 +257,13 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
         prauc[f] = [float(average_precision_score(labels[tm], raw[g][tm])) for g in names]
         best_gi = int(np.argmax(prauc[f]))
         id_ci = CALIBS.index("identity")
-        floor = full[f]["mAP50_voc07"] - budget
+        mkey, midx, _ = SEL["metric"]
+        floor = full[f][mkey] - budget
         def as_sel(r, extra=None):
             d = {"gate": names[r[0]], "calibration": CALIBS[r[1]], "threshold": r[2],
-                 "select_accept": r[4], "select_mAP50_voc07": r[5],
-                 "select_full_mAP50_voc07": full[f]["mAP50_voc07"], "gi": r[0], "ci": r[1],
+                 "select_accept": r[4], "select_mAP50_voc07": r[5], "select_mAP50_coco": r[6],
+                 "select_full_mAP50_voc07": full[f]["mAP50_voc07"],
+                 "select_full_mAP50_coco": full[f]["mAP50_coco"], "gi": r[0], "ci": r[1],
                  "select_fold_prauc": prauc[f][r[0]]}
             return dict(d, **(extra or {}))
         def risk_pick(cands):
@@ -266,8 +274,8 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
                     return as_sel(r, {"bootstrap_lower_bound": lb, "candidates_checked": k + 1})
             r = max(cands, key=lambda r: r[4])   # nothing passes: the most permissive candidate
             return as_sel(r, {"bootstrap_lower_bound": None, "candidates_checked": len(cands)})
-        key = lambda r: (cost(gates[names[r[0]]][1], r[4], model, det_g), -r[5])
-        allc = sorted((r for r in res if r[3] == f and r[5] >= floor), key=key)
+        key = lambda r: (cost(gates[names[r[0]]][1], r[4], model, det_g), -r[midx])
+        allc = sorted((r for r in res if r[3] == f and r[midx] >= floor), key=key)
         restricted = [r for r in allc if r[0] == best_gi and r[1] == id_ci]
         selected["plain_full"][f] = as_sel(allc[0])
         selected["risk_full"][f] = risk_pick(allc)
@@ -277,9 +285,11 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
         return cal_scores[sel["gi"]][sel["ci"]][fitted_on] >= sel["threshold"]
 
     out = {"preset": preset, "task": task, "cache": cache_path, "detector_gflops": det_g,
-           "cost_model": model, "budget_pp": budget * 100, "n_quantiles": n_quantiles,
+           "cost_model": model, "budget_pp": budget * 100, "selection_metric": SEL["metric"][0],
+           "n_quantiles": n_quantiles,
            "classes": classes, "gates": {g: {"scores": gates[g][0], "gflops": gates[g][1]} for g in names},
-           "protocol": "select on one fold, report on the other, pool; image-level DOTA VOC07 mAP@0.5 budget",
+           "protocol": "select on one fold, report on the other, pool; budget on image-level "
+                       f"{SEL['metric'][0]} (DOTA devkit matching, difficult objects ignored)",
            "rules": {"risk": "backbone with the highest PR-AUC on the selection fold, identity calibration, "
                              "cheapest threshold whose paired-bootstrap 5th-percentile mAP@0.5 change on the "
                              "selection fold is within the budget (200 image resamples); headline",
@@ -302,7 +312,8 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
                 "selected": {k: v for k, v in sel.items() if k not in ("gi", "ci")},
                 "report": rep, "report_full_pass": rep_full,
                 "report_saving": 1 - cost(gates[sel["gate"]][1], rep["accept_rate"], model, det_g),
-                "report_delta_mAP50_voc07": rep["mAP50_voc07"] - rep_full["mAP50_voc07"]}
+                "report_delta_mAP50_voc07": rep["mAP50_voc07"] - rep_full["mAP50_voc07"],
+                "report_delta_mAP50_coco": rep["mAP50_coco"] - rep_full["mAP50_coco"]}
         pooled = masks[f"{rule}_report_A"] | masks[f"{rule}_report_B"]
         masks[f"{rule}_pooled"] = pooled
         gA = gates[selected[rule]["B"]["gate"]][1]   # fold-A tiles are decided by fold B's choice
@@ -326,7 +337,8 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
     sm = full_metrics(cache, acc_all, classes, labels)
     out["same_split"] = dict(sm, selected={k: v for k, v in sel.items() if k not in ("gi", "ci")},
                              saving=1 - cost(gates[sel["gate"]][1], sm["accept_rate"], model, det_g),
-                             delta_mAP50_voc07=sm["mAP50_voc07"] - fm["mAP50_voc07"])
+                             delta_mAP50_voc07=sm["mAP50_voc07"] - fm["mAP50_voc07"],
+                             delta_mAP50_coco=sm["mAP50_coco"] - fm["mAP50_coco"])
     # sweep curves on all of val, identity calibration, per gate (for figures)
     out["curves"] = {}
     ci = CALIBS.index("identity")
@@ -386,6 +398,7 @@ def transfer_eval(tr: dict, selected: dict, calibrators: list, names: list, gate
         s = 1 - cost(gates[gname][1], m["accept_rate"], model, det_g)
         out[rule] = dict(m, selected={kk: v for kk, v in sel.items() if kk not in ("gi", "ci")},
                          saving=s, delta_mAP50_voc07=m["mAP50_voc07"] - full["mAP50_voc07"],
+                         delta_mAP50_coco=m["mAP50_coco"] - full["mAP50_coco"],
                          fpr_counts=[k, n], fpr_ci95_clopper_pearson=ci,
                          charged_share=float(m["p_plus"] * (1 - m["tpr"]) / s) if s > 0 else None)
     return out
@@ -421,6 +434,8 @@ def main() -> int:
     p.add_argument("--preset", required=True, choices=sorted(PRESETS))
     p.add_argument("--tasks", nargs="*", default=None)
     p.add_argument("--budget", type=float, default=0.03, help="mAP@0.5 tolerance, absolute")
+    p.add_argument("--metric", choices=sorted(METRICS), default="coco",
+                   help="AP interpolation the budget applies to: 101-point (coco) or 11-point (voc07)")
     p.add_argument("--quantiles", type=int, default=200)
     p.add_argument("--workers", type=int, default=32)
     p.add_argument("--cache", default=None, help="override the preset's cache")
@@ -428,6 +443,7 @@ def main() -> int:
                    help="override gates: NAME=PATH[:GFLOPS] (repeatable)")
     p.add_argument("--out-name", default=None, help="output file stem (default: task)")
     args = p.parse_args()
+    SEL["metric"] = METRICS[args.metric]
     cfg = dict(PRESETS[args.preset])
     if args.cache:
         cfg["cache"] = args.cache
@@ -444,7 +460,8 @@ def main() -> int:
                        out_name=args.out_name)
         rk, rf, pf, ss = (out["risk"]["pooled"], out["risk_full"]["pooled"], out["plain_full"]["pooled"],
                           out["same_split"])
-        fmt = lambda x: f"{100*x['saving']:.1f}%/{100*x['delta_mAP50_voc07']:+.2f}pp"
+        fmt = lambda x: (f"{100*x['saving']:.1f}%/{100*x['delta_mAP50_coco']:+.2f}pp"
+                         f"(voc {100*x['delta_mAP50_voc07']:+.2f})")
         print(f"[{args.preset}] {task:<20} p+={rk['p_plus']:.3f} | risk {fmt(rk)} TPR={rk['tpr']:.3f} | "
               f"risk_full {fmt(rf)} | plain_full {fmt(pf)} | same-split {fmt(ss)} ({out['seconds']}s)", flush=True)
     return 0
