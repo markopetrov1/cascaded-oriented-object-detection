@@ -72,3 +72,6 @@ reports/calibration/**/reliability.png
 
 # Test suite. Kept locally, not published.
 tests/
+
+# Submitted manuscript snapshot (round-1 baseline for latexdiff); never edited
+paper_r0_submitted/
