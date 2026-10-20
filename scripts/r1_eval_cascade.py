@@ -192,7 +192,8 @@ def risk_lower_bound(cache: EvalCache, acc: np.ndarray, classes: list[int], imag
 
 
 def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, budget: float,
-             n_quantiles: int, workers: int, gates: dict[str, tuple[str, float]] | None = None) -> dict:
+             n_quantiles: int, workers: int, gates: dict[str, tuple[str, float]] | None = None,
+             transfer: dict | None = None, out_name: str | None = None) -> dict:
     t0 = time.time()
     cache = EvalCache.load(REPO / cache_path)
     classes = task_classes(task) if det_key != "hrsc" else [0]
@@ -236,28 +237,41 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
         res = pool.map(_score_candidate, jobs, chunksize=8)
 
     full = {f: evaluate(cache, fold_tiles[f], classes, images=fold_images[f]) for f in ("A", "B", "all")}
-    selected = {"plain": {}, "risk": {}}
+    # Three selection rules. "risk" is the headline: it fixes the backbone by validation
+    # PR-AUC and the calibration to identity (monotone maps do not move the frontier), and
+    # chooses only the threshold, as the cheapest one whose paired-bootstrap 5th-percentile
+    # mAP change on the selection fold stays within the budget. The two "full" rules search
+    # every backbone, calibration map and threshold; they overfit the selection fold (picking
+    # the cheapest of thousands of candidates), which is reported as a finding.
+    from sklearn.metrics import average_precision_score
+    selected = {"risk": {}, "risk_full": {}, "plain_full": {}}
+    prauc = {}
     for f in ("A", "B", "all"):
+        tm = fold_tiles[f]
+        prauc[f] = [float(average_precision_score(labels[tm], raw[g][tm])) for g in names]
+        best_gi = int(np.argmax(prauc[f]))
+        id_ci = CALIBS.index("identity")
         floor = full[f]["mAP50_voc07"] - budget
-        cands = sorted((r for r in res if r[3] == f and r[5] >= floor),
-                       key=lambda r: (cost(gates[names[r[0]]][1], r[4], model, det_g), -r[5]))
         def as_sel(r, extra=None):
             d = {"gate": names[r[0]], "calibration": CALIBS[r[1]], "threshold": r[2],
                  "select_accept": r[4], "select_mAP50_voc07": r[5],
-                 "select_full_mAP50_voc07": full[f]["mAP50_voc07"], "gi": r[0], "ci": r[1]}
+                 "select_full_mAP50_voc07": full[f]["mAP50_voc07"], "gi": r[0], "ci": r[1],
+                 "select_fold_prauc": prauc[f][r[0]]}
             return dict(d, **(extra or {}))
-        selected["plain"][f] = as_sel(cands[0])
-        # Risk-controlled: cheapest candidate whose paired-bootstrap 5th percentile of the
-        # mAP change on the selection fold stays within the budget.
-        for k, r in enumerate(cands):
-            acc = cal_scores[r[0]][r[1]][f] >= r[2]
-            lb = risk_lower_bound(cache, acc, classes, fold_images[f])
-            if lb >= -budget:
-                selected["risk"][f] = as_sel(r, {"bootstrap_lower_bound": lb, "candidates_checked": k + 1})
-                break
-        else:
-            r = max(cands, key=lambda r: r[4])   # nothing passes: fall back to the full pass
-            selected["risk"][f] = as_sel(r, {"bootstrap_lower_bound": None, "candidates_checked": len(cands)})
+        def risk_pick(cands):
+            for k, r in enumerate(cands):
+                acc = cal_scores[r[0]][r[1]][f] >= r[2]
+                lb = risk_lower_bound(cache, acc, classes, fold_images[f])
+                if lb >= -budget:
+                    return as_sel(r, {"bootstrap_lower_bound": lb, "candidates_checked": k + 1})
+            r = max(cands, key=lambda r: r[4])   # nothing passes: the most permissive candidate
+            return as_sel(r, {"bootstrap_lower_bound": None, "candidates_checked": len(cands)})
+        key = lambda r: (cost(gates[names[r[0]]][1], r[4], model, det_g), -r[5])
+        allc = sorted((r for r in res if r[3] == f and r[5] >= floor), key=key)
+        restricted = [r for r in allc if r[0] == best_gi and r[1] == id_ci]
+        selected["plain_full"][f] = as_sel(allc[0])
+        selected["risk_full"][f] = risk_pick(allc)
+        selected["risk"][f] = risk_pick(restricted)
 
     def decide(sel: dict, fitted_on: str) -> np.ndarray:
         return cal_scores[sel["gi"]][sel["ci"]][fitted_on] >= sel["threshold"]
@@ -266,13 +280,16 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
            "cost_model": model, "budget_pp": budget * 100, "n_quantiles": n_quantiles,
            "classes": classes, "gates": {g: {"scores": gates[g][0], "gflops": gates[g][1]} for g in names},
            "protocol": "select on one fold, report on the other, pool; image-level DOTA VOC07 mAP@0.5 budget",
-           "rules": {"plain": "cheapest candidate within the budget on the selection fold",
-                     "risk": "cheapest candidate whose paired-bootstrap 5th-percentile mAP change on the "
-                             "selection fold is within the budget (200 image resamples)"}}
+           "rules": {"risk": "backbone with the highest PR-AUC on the selection fold, identity calibration, "
+                             "cheapest threshold whose paired-bootstrap 5th-percentile mAP@0.5 change on the "
+                             "selection fold is within the budget (200 image resamples); headline",
+                     "risk_full": "same bootstrap rule searched over every backbone, calibration map and threshold",
+                     "plain_full": "cheapest candidate over every backbone, calibration and threshold whose "
+                                   "point estimate on the selection fold is within the budget"}}
     masks = {}
     fm = full_metrics(cache, np.ones(len(cache.tiles), bool), classes, labels)
     out["full_pass"] = fm
-    for rule in ("plain", "risk"):
+    for rule in ("risk", "risk_full", "plain_full"):
         res_rule = {"folds": {}}
         for sel_f, rep_f in (("A", "B"), ("B", "A")):
             sel = selected[rule][sel_f]
@@ -297,12 +314,13 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
                                   delta_mAP50_voc07=pm["mAP50_voc07"] - fm["mAP50_voc07"],
                                   delta_mAP50_coco=pm["mAP50_coco"] - fm["mAP50_coco"],
                                   delta_mAP50_95_coco=pm["mAP50_95_coco"] - fm["mAP50_95_coco"],
+                                  saving_if_gate_free=1 - pm["accept_rate"],
                                   charged_share=float(pm["p_plus"] * (1 - pm["tpr"]) / s) if s > 0 else None,
                                   bootstrap=bootstrap(cache, pooled, classes, g_pool, det_g, model))
         out[rule] = res_rule
     out["pooled"] = out["risk"]["pooled"]      # headline rule
     # same-split (old protocol, image level) for comparison
-    sel = selected["plain"]["all"]
+    sel = selected["plain_full"]["all"]
     acc_all = decide(sel, "all")
     masks["same_split"] = acc_all
     sm = full_metrics(cache, acc_all, classes, labels)
@@ -332,12 +350,42 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
             e[c] = {"heldout_mean": float(np.mean(vals)), "heldout_folds": [float(v) for v in vals],
                     "same_split": float(same)}
         out["ece_heldout"][g] = e
+    if transfer:
+        out["transfer"] = transfer_eval(transfer, selected, calibrators, names, gates, model, det_g)
     out["seconds"] = round(time.time() - t0, 1)
     dest = REPO / "reports/r1/cascade" / preset
     dest.mkdir(parents=True, exist_ok=True)
-    slug = task.replace(" ", "_")
+    slug = out_name or task.replace(" ", "_")
     (dest / f"{slug}.json").write_text(json.dumps(out, indent=2))
     np.savez_compressed(dest / f"{slug}_masks.npz", tiles=np.array(cache.tiles), **masks)
+    return out
+
+
+def transfer_eval(tr: dict, selected: dict, calibrators: list, names: list, gates: dict,
+                  model: str, det_g: float) -> dict:
+    """Apply operating points chosen on all of DOTA val to another dataset, untouched by selection."""
+    from scipy.stats import beta
+    cache = EvalCache.load(REPO / tr["cache"])
+    order = {json.loads(l)["tile_id"]: int(json.loads(l)["is_positive"]) for l in open(REPO / tr["meta"])}
+    labels = np.array([order[t] for t in cache.tiles])
+    buckets = np.array([tr.get("bucket", "transfer")] * len(cache.tiles))
+    full = full_metrics(cache, np.ones(len(cache.tiles), bool), tr["classes"], labels)
+    out = {"cache": tr["cache"], "full_pass": full, "note": tr.get("note", "")}
+    for rule in ("risk", "plain_full"):
+        sel = selected[rule]["all"]
+        gname = names[sel["gi"]]
+        raw = load_scores(tr["scores"][gname], cache.tiles)
+        acc = calibrators[sel["gi"]][sel["ci"]]["all"](raw, buckets) >= sel["threshold"]
+        m = full_metrics(cache, acc, tr["classes"], labels)
+        neg = labels == 0
+        k, n = int(acc[neg].sum()), int(neg.sum())
+        ci = [float(beta.ppf(0.025, k, n - k + 1)) if k > 0 else 0.0,
+              float(beta.ppf(0.975, k + 1, n - k)) if k < n else 1.0]
+        s = 1 - cost(gates[gname][1], m["accept_rate"], model, det_g)
+        out[rule] = dict(m, selected={kk: v for kk, v in sel.items() if kk not in ("gi", "ci")},
+                         saving=s, delta_mAP50_voc07=m["mAP50_voc07"] - full["mAP50_voc07"],
+                         fpr_counts=[k, n], fpr_ci95_clopper_pearson=ci,
+                         charged_share=float(m["p_plus"] * (1 - m["tpr"]) / s) if s > 0 else None)
     return out
 
 
@@ -349,6 +397,20 @@ PRESETS = {
     "shipsp50": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="decoupled", tasks=["ship"]),
     "yolo11n": dict(cache="runs/r1_cache/yolo11n_ships_1024_val.npz", det="yolo11n", model="decoupled",
                     tasks=["ship"]),
+    # fused OAN head (shared-backbone cost) against its matched independent gate, seed 67
+    "fused": dict(cache="runs/r1_cache/oan_val.npz", det="oan", model="fused", tasks=["ship"],
+                  gates={"oan_head": ("reports/oan/gate_oan_ships_val.jsonl", 0.0)}),
+    "indep": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="decoupled", tasks=["ship"],
+                  gates={"mbv3large": ("reports/gate_scores/gate_mbv3large_val.jsonl", GATE_GFLOPS["mbv3large"])}),
+    # HRSC2016: operating point chosen on DOTA val only, then applied unchanged
+    "hrsc": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="decoupled", tasks=["ship"],
+                 gates={"mbv3large": ("reports/gate_scores/gate_mbv3large_val.jsonl", GATE_GFLOPS["mbv3large"])},
+                 transfer={"cache": "runs/r1_cache/shipsp50_hrsc.npz",
+                           "meta": "data/processed/hrsc2016/metadata/tiles.jsonl", "classes": [0],
+                           "scores": {"mbv3large": "reports/hrsc/gate_mbv3large_test.jsonl"},
+                           "bucket": "HRSC2016",
+                           "note": "untiled HRSC2016 test images; calibration and threshold fitted on DOTA val; "
+                                   "the context-adaptive map falls back to its global threshold for this source"}),
 }
 
 
@@ -359,17 +421,30 @@ def main() -> int:
     p.add_argument("--budget", type=float, default=0.03, help="mAP@0.5 tolerance, absolute")
     p.add_argument("--quantiles", type=int, default=200)
     p.add_argument("--workers", type=int, default=32)
+    p.add_argument("--cache", default=None, help="override the preset's cache")
+    p.add_argument("--gate", action="append", default=None,
+                   help="override gates: NAME=PATH[:GFLOPS] (repeatable)")
+    p.add_argument("--out-name", default=None, help="output file stem (default: task)")
     args = p.parse_args()
-    cfg = PRESETS[args.preset]
+    cfg = dict(PRESETS[args.preset])
+    if args.cache:
+        cfg["cache"] = args.cache
+    if args.gate:
+        cfg["gates"] = {}
+        for g in args.gate:
+            name, rest = g.split("=", 1)
+            path, _, gf = rest.partition(":")
+            cfg["gates"][name] = (path, float(gf) if gf else GATE_GFLOPS.get(name, 0.0))
     tasks = args.tasks or cfg["tasks"] or [t["task"] for t in json.load(open(REPO / "reports/gate_tasks.json"))]
     for task in tasks:
         out = run_task(args.preset, task, cfg["cache"], cfg["det"], cfg["model"], args.budget,
-                       args.quantiles, args.workers)
-        pl, rk, ss = out["plain"]["pooled"], out["risk"]["pooled"], out["same_split"]
-        print(f"[{args.preset}] {task:<20} p+={rk['p_plus']:.3f} | risk: save={100*rk['saving']:.1f}% "
-              f"dmAP={100*rk['delta_mAP50_voc07']:+.2f}pp TPR={rk['tpr']:.3f} | plain: save={100*pl['saving']:.1f}% "
-              f"dmAP={100*pl['delta_mAP50_voc07']:+.2f}pp | same-split: save={100*ss['saving']:.1f}% "
-              f"dmAP={100*ss['delta_mAP50_voc07']:+.2f}pp ({out['seconds']}s)", flush=True)
+                       args.quantiles, args.workers, gates=cfg.get("gates"), transfer=cfg.get("transfer"),
+                       out_name=args.out_name)
+        rk, rf, pf, ss = (out["risk"]["pooled"], out["risk_full"]["pooled"], out["plain_full"]["pooled"],
+                          out["same_split"])
+        fmt = lambda x: f"{100*x['saving']:.1f}%/{100*x['delta_mAP50_voc07']:+.2f}pp"
+        print(f"[{args.preset}] {task:<20} p+={rk['p_plus']:.3f} | risk {fmt(rk)} TPR={rk['tpr']:.3f} | "
+              f"risk_full {fmt(rf)} | plain_full {fmt(pf)} | same-split {fmt(ss)} ({out['seconds']}s)", flush=True)
     return 0
 
 
