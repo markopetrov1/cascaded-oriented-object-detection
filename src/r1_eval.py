@@ -295,16 +295,43 @@ def build_cache(tile_preds: dict[str, tuple[np.ndarray, np.ndarray, np.ndarray]]
 
 # ------------------------------------------------------------- evaluation ----
 
-def merged_keep(cache: EvalCache, accepted_tiles: np.ndarray, det_mask: np.ndarray | None = None) -> np.ndarray:
-    """Detections surviving image-level NMS when only `accepted_tiles` were run."""
+def merged_keep(cache: EvalCache, accepted_tiles: np.ndarray, det_mask: np.ndarray | None = None,
+                classes: Iterable[int] | None = None, images: np.ndarray | None = None) -> np.ndarray:
+    """Detections surviving image-level NMS when only `accepted_tiles` were run.
+
+    NMS never crosses classes or images, so restricting the pass to the
+    `classes` and `images` being evaluated is exact for those detections and
+    much faster on the 16-class cache. Detections outside them come back False.
+    """
     alive = accepted_tiles[cache.det_tile].copy()
     if det_mask is not None:
         alive &= det_mask
+    sup = cache.suppressors
+    if classes is not None:
+        cls = np.asarray(list(classes))
+        alive &= np.isin(cache.det_cls, cls)
+        sup = sup[np.isin(cache.det_cls[sup], cls)]
+    if images is not None:
+        alive &= images[cache.det_image]
+        sup = sup[images[cache.det_image[sup]]]
     ptr, idx = cache.sup_ptr, cache.sup_idx
-    for d in cache.suppressors:
+    for d in sup[alive[sup]]:
         if alive[d]:
             alive[idx[ptr[d]:ptr[d + 1]]] = False
     return alive
+
+
+def _interp_ap(rec: np.ndarray, prec: np.ndarray, n_points: int) -> float:
+    """Mean over recall levels r of the best precision at recall >= r (VOC/COCO interpolation).
+
+    `rec` is non-decreasing, so "recall >= r" is a suffix starting at
+    searchsorted(rec, r) and its best precision is a running maximum from the end.
+    """
+    if len(rec) == 0:
+        return 0.0
+    env = np.maximum.accumulate(prec[::-1])[::-1]
+    idx = np.searchsorted(rec, np.linspace(0, 1, n_points), side="left")
+    return float(np.where(idx < len(rec), env[np.minimum(idx, len(rec) - 1)], 0.0).mean())
 
 
 def _ap_from_flags(scores: np.ndarray, tp: np.ndarray, valid: np.ndarray, n_pos: int
@@ -316,14 +343,11 @@ def _ap_from_flags(scores: np.ndarray, tp: np.ndarray, valid: np.ndarray, n_pos:
     s, t = scores[valid], tp[valid]
     if len(s) == 0:
         return 0.0, 0.0
-    o = np.argsort(-s, kind="stable")
-    t = t[o]
+    t = t[np.argsort(-s, kind="stable")]
     ctp = np.cumsum(t); cfp = np.cumsum(~t)
     rec = ctp / n_pos
     prec = ctp / np.maximum(ctp + cfp, 1e-12)
-    ap11 = np.mean([prec[rec >= r].max() if (rec >= r).any() else 0.0 for r in np.linspace(0, 1, 11)])
-    ap101 = np.mean([prec[rec >= r].max() if (rec >= r).any() else 0.0 for r in np.linspace(0, 1, 101)])
-    return float(ap11), float(ap101)
+    return _interp_ap(rec, prec, 11), _interp_ap(rec, prec, 101)
 
 
 def match(cache: EvalCache, keep: np.ndarray, iou_thr: float, classes: Iterable[int],
@@ -360,8 +384,8 @@ def evaluate(cache: EvalCache, accepted_tiles: np.ndarray, classes: Iterable[int
              images: np.ndarray | None = None, iou_thresholds: Iterable[float] = (0.5,),
              det_mask: np.ndarray | None = None) -> dict:
     """mAP (VOC07 and COCO-101) per IoU threshold, averaged over classes with objects."""
-    keep = merged_keep(cache, accepted_tiles, det_mask)
     classes = list(classes)
+    keep = merged_keep(cache, accepted_tiles, det_mask, classes, images)
     iou_thresholds = list(iou_thresholds)
     out = {}
     for thr in iou_thresholds:
@@ -384,8 +408,9 @@ def evaluate(cache: EvalCache, accepted_tiles: np.ndarray, classes: Iterable[int
 def object_recall(cache: EvalCache, accepted_tiles: np.ndarray, classes: Iterable[int],
                   conf: float, iou_thr: float = 0.5, images: np.ndarray | None = None) -> np.ndarray:
     """Boolean per object: detected at confidence >= conf after merging the accepted tiles."""
-    return match(cache, merged_keep(cache, accepted_tiles, cache.det_score >= conf), iou_thr,
-                 classes, images)["gt_hit"]
+    classes = list(classes)
+    keep = merged_keep(cache, accepted_tiles, cache.det_score >= conf, classes, images)
+    return match(cache, keep, iou_thr, classes, images)["gt_hit"]
 
 
 def objects_all_tiles_rejected(cache: EvalCache, accepted_tiles: np.ndarray) -> np.ndarray:
@@ -395,3 +420,45 @@ def objects_all_tiles_rejected(cache: EvalCache, accepted_tiles: np.ndarray) -> 
     n_acc = np.bincount(owner, weights=accepted_tiles[cache.gt_tiles_idx].astype(float),
                         minlength=len(n_tiles))
     return (n_tiles > 0) & (n_acc == 0)
+
+
+class BootstrapMAP:
+    """Image-weighted mAP of one `match` result, for the cluster bootstrap.
+
+    Resampling an image k times equals weighting its detections and objects by
+    k, so the matching is done once and each class's detections are sorted once;
+    a resample only changes the weights.
+    """
+
+    def __init__(self, cache: EvalCache, m: dict, classes: Iterable[int]):
+        self.per_class = []
+        for c in classes:
+            gsel = m["gt_sel"] & (cache.gt_cls == c)
+            if not gsel.any():
+                continue
+            dc = (cache.det_cls[m["det"]] == c) & m["valid"]
+            s = cache.det_score[m["det"]][dc]
+            o = np.argsort(-s, kind="stable")
+            self.per_class.append((cache.gt_image[gsel], m["tp"][dc][o],
+                                   cache.det_image[m["det"]][dc][o]))
+
+    def __call__(self, img_weight: np.ndarray) -> tuple[float, float]:
+        ap11, ap101 = [], []
+        for gt_img, tp, det_img in self.per_class:
+            n_pos = float(img_weight[gt_img].sum())
+            if n_pos <= 0:
+                continue
+            w = img_weight[det_img]
+            ctp = np.cumsum(w * tp); cfp = np.cumsum(w * ~tp)
+            keep = w > 0
+            rec = (ctp / n_pos)[keep]
+            prec = (ctp / np.maximum(ctp + cfp, 1e-12))[keep]
+            ap11.append(_interp_ap(rec, prec, 11)); ap101.append(_interp_ap(rec, prec, 101))
+        return (float(np.mean(ap11)) if ap11 else float("nan"),
+                float(np.mean(ap101)) if ap101 else float("nan"))
+
+
+def weighted_map(cache: EvalCache, m: dict, classes: Iterable[int], img_weight: np.ndarray
+                 ) -> tuple[float, float]:
+    """(VOC07, COCO-101) mAP of a `match` result with images weighted by `img_weight`."""
+    return BootstrapMAP(cache, m, classes)(img_weight)
