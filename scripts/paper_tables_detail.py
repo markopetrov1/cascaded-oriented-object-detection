@@ -158,6 +158,9 @@ def table_codesign() -> list[str]:
          r"failures are architectural; a head placed on the detector's own "
          r"backbone succeeds (\S\ref{sec:fusing}).}",
          r"\label{tab:codesign}", r"\small",
+         # The IEEE Access column is narrower than IEEEtran's; at the default
+         # separation this table overflows it by 4.5 pt.
+         r"\setlength{\tabcolsep}{3.5pt}",
          r"\begin{tabular}{lrr}", r"\toprule",
          r"Gate & Binary PR-AUC & Distilled PR-AUC \\", r"\midrule"]
     for g in GATES:
