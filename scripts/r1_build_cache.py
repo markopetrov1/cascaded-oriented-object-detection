@@ -12,6 +12,10 @@ ids are mapped to the 16-class ids with --class-map for single-class detectors.
 
 HRSC2016: images are not tiled, so each image is its own tile; ground truth comes from the
 processed single-class labels (HRSC difficult flags are not carried by the conversion).
+
+SODA-A (--soda): tiles from data/processed/soda_a/metadata/tiles.jsonl, ground truth from the
+converted labelTxt files (scripts/r1_prepare_soda.py). Detections whose centre lies inside one
+of SODA-A's class-agnostic ignore regions are dropped before merging.
 """
 from __future__ import annotations
 
@@ -22,6 +26,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+import shapely
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO))
@@ -32,6 +37,7 @@ DOTA_META = REPO / "data/processed/dota_multiclass/metadata/tiles.jsonl"
 DOTA_RAW_VAL = REPO / "data/raw/DOTA/val/labelTxt"
 HRSC_META = REPO / "data/processed/hrsc2016/metadata/tiles.jsonl"
 HRSC_LABELS = REPO / "data/processed/hrsc2016/labels/test"
+SODA = REPO / "data/processed/soda_a"
 
 
 def main() -> int:
@@ -40,11 +46,12 @@ def main() -> int:
     p.add_argument("--out", required=True)
     p.add_argument("--class-map", default=None, help="detector:global ids, e.g. 0:1 for a ships detector")
     p.add_argument("--hrsc", action="store_true")
+    p.add_argument("--soda", action="store_true")
     p.add_argument("--nms-iou", type=float, default=0.3)
     args = p.parse_args()
     t0 = time.time()
 
-    meta_path = HRSC_META if args.hrsc else DOTA_META
+    meta_path = HRSC_META if args.hrsc else SODA / "metadata/tiles.jsonl" if args.soda else DOTA_META
     windows, sizes = {}, {}
     for line in open(meta_path):
         r = json.loads(line)
@@ -60,13 +67,32 @@ def main() -> int:
         cmap = {int(a): int(b) for a, b in (kv.split(":") for kv in args.class_map.split(","))}
         preds = {t: (np.array([cmap.get(int(c), -1) for c in cls], dtype=np.int64), s, corners)
                  for t, (cls, s, corners) in preds.items()}
+    n_ignored = 0
+    if args.soda:
+        ign = {}
+        for img in {w[0] for w in windows.values()}:
+            rows = [list(map(float, l.split())) for l in open(SODA / f"val/ignore/{img}.txt") if l.strip()]
+            ign[img] = shapely.convex_hull(shapely.polygons(np.array(rows).reshape(-1, 4, 2))) if rows else None
+        for t, (cls, s, corners) in list(preds.items()):
+            img, x, y = windows[t][:3]
+            if ign[img] is None or not len(cls):
+                continue
+            ctr = shapely.points(corners.mean(1) + np.array([x, y]))
+            inside = np.zeros(len(cls), bool)
+            for poly in ign[img]:
+                inside |= shapely.contains(poly, ctr)
+            n_ignored += int(inside.sum())
+            preds[t] = (cls[~inside], s[~inside], corners[~inside])
     n_det = sum(len(v[0]) for v in preds.values())
     if args.hrsc:
         gt = load_yolo_gt(HRSC_LABELS, tiles, sizes)
+    elif args.soda:
+        gt = load_dota_image_gt(SODA / "val/labelTxt", sorted({w[0] for w in windows.values()}))
     else:
         gt = load_dota_image_gt(DOTA_RAW_VAL, sorted({w[0] for w in windows.values()}))
     cache = build_cache(preds, gt, windows, nms_iou=args.nms_iou,
-                        meta={"pred": args.pred, "class_map": args.class_map, "hrsc": args.hrsc})
+                        meta={"pred": args.pred, "class_map": args.class_map, "hrsc": args.hrsc,
+                              "soda": args.soda, "detections_in_ignore_regions_dropped": n_ignored})
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     cache.save(args.out)
     print(f"[r1_build_cache] {len(cache.tiles)} tiles, {len(cache.images)} images, {n_det} detections, "

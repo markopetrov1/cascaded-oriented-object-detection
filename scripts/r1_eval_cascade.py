@@ -158,13 +158,16 @@ def cost(gate_g: float, accept: float, model: str, det_g: float) -> float:
 
 def full_metrics(cache: EvalCache, acc: np.ndarray, classes: list[int], labels: np.ndarray,
                  images: np.ndarray | None = None, tiles: np.ndarray | None = None) -> dict:
+    """Image-level AP plus tile statistics. Tiles labelled -1 (class unknown, e.g. SODA-A ignore
+    regions) count towards the accept rate but not towards TPR, FPR or p+."""
     tmask = np.ones(len(acc), bool) if tiles is None else tiles
     m = evaluate(cache, acc & tmask, classes, images=images, iou_thresholds=IOU_THRESHOLDS)
     a = acc[tmask]
     lab = labels[tmask]
     return dict(m, accept_rate=float(a.mean()), tpr=float(a[lab == 1].mean()) if (lab == 1).any() else float("nan"),
                 fpr=float(a[lab == 0].mean()) if (lab == 0).any() else float("nan"),
-                p_plus=float(lab.mean()), n_tiles=int(tmask.sum()))
+                p_plus=float((lab[lab >= 0] == 1).mean()), n_tiles=int(tmask.sum()),
+                n_unlabelled=int((lab < 0).sum()))
 
 
 def bootstrap(cache: EvalCache, acc: np.ndarray, classes: list[int], gate_g: float, det_g: float,
@@ -221,7 +224,7 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
     fold_images = {f: np.array([img_fold[im] == f for im in cache.images]) for f in ("A", "B")}
     fold_images["all"] = np.ones(len(cache.images), bool)
     fold_tiles = {f: fold_images[f][cache.tile_image] for f in fold_images}
-    gates = gates or gate_files(preset, task)
+    gates = gates or gate_files(PRESETS[preset].get("gate_preset", preset), task)
     det_g = det_gflops or DET_GFLOPS[det_key]
     names = list(gates)
     raw = {g: load_scores(gates[g][0], cache.tiles) for g in names}
@@ -378,7 +381,7 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
     out["selections"] = {rule: {f: {k: v for k, v in s.items() if k not in ("gi", "ci")}
                                 for f, s in per_f.items()} for rule, per_f in selected.items()}
     if transfer:
-        out["transfer"] = transfer_eval(transfer, selected, calibrators, names, gates, model, det_g)
+        out["transfer"] = transfer_eval(transfer, selected, calibrators, names, gates, model, det_g, task)
     out["seconds"] = round(time.time() - t0, 1)
     dest = REPO / "reports/r1/cascade" / preset
     dest.mkdir(parents=True, exist_ok=True)
@@ -389,21 +392,30 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
 
 
 def transfer_eval(tr: dict, selected: dict, calibrators: list, names: list, gates: dict,
-                  model: str, det_g: float) -> dict:
+                  model: str, det_g: float, task: str) -> dict:
     """Apply operating points chosen on all of DOTA val to another dataset, untouched by selection."""
     from scipy.stats import beta
     cache = EvalCache.load(REPO / tr["cache"])
-    order = {json.loads(l)["tile_id"]: int(json.loads(l)["is_positive"]) for l in open(REPO / tr["meta"])}
-    labels = np.array([order[t] for t in cache.tiles])
+    slug = task.replace(" ", "_")
+    classes = task_classes(task) if tr["classes"] == "task" else tr["classes"]
+    want = {CLASS_ID_INV[c] for c in classes}
+    lab_of = {}
+    for line in open(REPO / tr["meta"]):
+        r = json.loads(line)
+        if "is_positive" in r:
+            lab_of[r["tile_id"]] = int(r["is_positive"])
+        else:   # multi-class metadata: positive for the task's classes; -1 where the class is unknown
+            lab_of[r["tile_id"]] = -1 if r.get("has_ignore") else int(bool(want & set(r.get("class_counts", {}))))
+    labels = np.array([lab_of[t] for t in cache.tiles])
     buckets = np.array([tr.get("bucket", "transfer")] * len(cache.tiles))
-    full = full_metrics(cache, np.ones(len(cache.tiles), bool), tr["classes"], labels)
+    full = full_metrics(cache, np.ones(len(cache.tiles), bool), classes, labels)
     out = {"cache": tr["cache"], "full_pass": full, "note": tr.get("note", "")}
     for rule in ("risk", "plain_full"):
         sel = selected[rule]["all"]
         gname = names[sel["gi"]]
-        raw = load_scores(tr["scores"][gname], cache.tiles)
+        raw = load_scores(tr["scores"][gname].format(slug=slug, bb=gname), cache.tiles)
         acc = calibrators[sel["gi"]][sel["ci"]]["all"](raw, buckets) >= sel["threshold"]
-        m = full_metrics(cache, acc, tr["classes"], labels)
+        m = full_metrics(cache, acc, classes, labels)
         neg = labels == 0
         k, n = int(acc[neg].sum()), int(neg.sum())
         ci = [float(beta.ppf(0.025, k, n - k + 1)) if k > 0 else 0.0,
@@ -439,6 +451,23 @@ PRESETS = {
                            "bucket": "HRSC2016",
                            "note": "untiled HRSC2016 test images; calibration and threshold fitted on DOTA val; "
                                    "the context-adaptive map falls back to its global threshold for this source"}),
+    # SODA-A validation (independent annotation team and protocol): operating points chosen on DOTA val
+    "soda_sweep": dict(cache="runs/r1_cache/multiclass_val.npz", det="multiclass", model="decoupled",
+                       tasks=["ship", "plane", "small vehicle"], gate_preset="sweep",
+                       transfer={"cache": "runs/r1_cache/multiclass_soda.npz",
+                                 "meta": "data/processed/soda_a/metadata/tiles.jsonl", "classes": "task",
+                                 "scores": {"mbv3large": "reports/r1/soda/gate_scores/sweep_{slug}.jsonl"},
+                                 "bucket": "SODA-A",
+                                 "note": "SODA-A val tiled 1024/200; detections in ignore regions dropped; "
+                                         "tiles touching an ignore region excluded from p+, TPR and FPR"}),
+    "soda_pillars": dict(cache="runs/r1_cache/multiclass_val.npz", det="multiclass", model="decoupled",
+                         tasks=["ship", "plane", "small vehicle"], gate_preset="pillars",
+                         transfer={"cache": "runs/r1_cache/multiclass_soda.npz",
+                                   "meta": "data/processed/soda_a/metadata/tiles.jsonl", "classes": "task",
+                                   "scores": {bb: "reports/r1/soda/gate_scores/{slug}_{bb}.jsonl" for bb in BB},
+                                   "bucket": "SODA-A",
+                                   "note": "SODA-A val tiled 1024/200; detections in ignore regions dropped; "
+                                           "tiles touching an ignore region excluded from p+, TPR and FPR"}),
 }
 
 
