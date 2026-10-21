@@ -159,7 +159,7 @@ def runtime_table() -> str:
     return r"""
 \begin{table}[!t]
 \centering
-\caption{End-to-end time per tile on $""" + str(r["tiles"]) + r"""$ tiles of $""" + str(r["scenes"]) + r"""$ held-out DOTA scenes, ships, at the thresholds the selection rule of Section~\ref{sec:experiments} chooses on DOTA validation. Included: host-to-device transfer, preprocessing, gate, detector or split backbone, decoding with rotated non-maximum suppression, and the per-scene merge. \emph{Streaming} processes one tile at a time; \emph{batched} sends each scene's tiles through the gate in batches of up to $32$ and its accepted tiles through the detector in batches of up to $16$. Median of five passes.}
+\caption{End-to-end time per tile on $""" + str(r["tiles"]) + r"""$ tiles of $""" + str(r["scenes"]) + r"""$ DOTA validation scenes, ships, with the decoupled MobileNetV3-large gate and the fused head of Section~\ref{sec:fusing}, each at the threshold the selection rule of Section~\ref{sec:experiments} chooses on DOTA validation. Included: host-to-device transfer, preprocessing, gate, detector or split backbone, decoding with rotated non-maximum suppression, and the per-scene merge. \emph{Streaming} processes one tile at a time; \emph{batched} sends each scene's tiles through the gate in batches of up to $32$ and its accepted tiles through the detector in batches of up to $16$. Median of five passes.}
 \label{tab:runtime}
 \footnotesize
 \setlength{\tabcolsep}{3.5pt}
@@ -316,7 +316,7 @@ def fusing_table() -> str:
     return r"""
 \begin{table}[!t]
 \centering
-\caption{Fused against decoupled gating on DOTA-1.5 ships, both arms with a detector trained for $50$ epochs at patience $50$ (""" + seeds + r"""). Savings are of detector arithmetic at the operating points chosen on held-out scenes; the full accounting charges the fused head for the backbone prefix it reads and the decoupled gate for its own cost. Times are end to end on one seed (Table~\ref{tab:runtime}).}
+\caption{Fused against decoupled gating on DOTA-1.5 ships, both arms with a detector trained for $50$ epochs at patience $50$ (""" + seeds + r"""). Savings are of detector arithmetic at the operating points chosen on held-out scenes; the full accounting charges the fused head for the backbone prefix it reads and the decoupled gate for its own cost. Times are end to end (Table~\ref{tab:runtime}), measured on one seed at the thresholds chosen on all of DOTA validation, which accept slightly different shares of tiles.}
 \label{tab:fusing}
 \footnotesize
 \setlength{\tabcolsep}{4pt}

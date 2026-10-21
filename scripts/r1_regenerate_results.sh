@@ -37,6 +37,7 @@ for r in pillars/ship pillars/plane pillars/small_vehicle indep/ship fused/ship 
   $PY scripts/r1_object_recall.py --run reports/r1/cascade/$r.json --masks risk_pooled risk_full_pooled plain_full_pooled same_split
 done
 for r in pillars/ship pillars/plane pillars/small_vehicle; do $PY scripts/r1_stratified.py --run reports/r1/cascade/$r.json; done
+$PY scripts/r1_strata_scenes.py
 $PY scripts/r1_calibration_ties.py --task ship
 $PY scripts/r1_dota10_empty_rate.py
 $PY scripts/r1_soda_dota_overlap.py
