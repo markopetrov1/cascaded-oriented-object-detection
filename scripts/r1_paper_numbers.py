@@ -546,6 +546,20 @@ def distill() -> None:
     num("praucDistMbvl", dist["mbv3large"], 3)
     num("praucDistMse", prauc_file("reports/r1/distill_scores/gate_ships_mbv3large_distill_r1_val.jsonl"), 3)
     num("praucDistHard", prauc_file("reports/r1/distill_scores/gate_ships_mbv3large_distill_hard_r1b_val.jsonl"), 3)
+    # each binary six-backbone gate evaluated on its own, as the distilled ones are
+    sv = {bb: (load(f"cascade/distill/binary_{bb}.json"), load(f"cascade/distill/{bb}.json")) for bb in bbs}
+    if all(a and b for a, b in sv.values()):
+        s = {bb: (a["risk"]["pooled"], b["risk"]["pooled"]) for bb, (a, b) in sv.items()}
+        diffs5 = [s[bb][1]["saving"] - s[bb][0]["saving"] for bb in bbs if bb != "tiny"]
+        num("saveDistDiffAbs", 100 * max(abs(x) for x in diffs5), 1)
+        pc("saveBinMbvl", s["mbv3large"][0]["saving"]); abs_pp("dapBinMbvl", s["mbv3large"][0]["delta_mAP50_coco"])
+        pc("saveBinTiny", s["tiny"][0]["saving"]); pc("saveDistTiny", s["tiny"][1]["saving"])
+        abs_pp("dapBinEffb", s["effb0"][0]["delta_mAP50_coco"]); abs_pp("dapDistEffb", s["effb0"][1]["delta_mAP50_coco"])
+        num("praucBinEffb", binr["effb0"], 3); num("praucDistEffb", dist["effb0"], 3)
+    else:
+        for k in ("saveDistDiffAbs", "saveBinMbvl", "dapBinMbvl", "saveBinTiny", "saveDistTiny",
+                  "dapBinEffb", "dapDistEffb", "praucBinEffb", "praucDistEffb"):
+            put(k, None)
     tg = load("distill_targets.json")
     num("distTargetPrauc", tg["prauc_vs_labels"] if tg else None, 3)
     num("distTargetMeanPos", tg["mean_positive"] if tg else None, 2)

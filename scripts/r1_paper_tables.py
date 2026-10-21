@@ -383,39 +383,43 @@ def prauc_of(rel):
 
 
 def codesign_table() -> str:
-    names = {"mbv3small": "MobileNetV3-small", "mbv3large": "MobileNetV3-large", "resnet18": "ResNet-18",
+    names = {"mbv3small": "MobileNetV3-S", "mbv3large": "MobileNetV3-L", "resnet18": "ResNet-18",
              "resnet50": "ResNet-50", "effb0": "EfficientNet-B0", "tiny": "tiny ConvNet"}
+
+    def saved(rel):
+        sv = load(rel)
+        if not sv:
+            return QQ
+        x = sv["risk"]["pooled"]
+        return pct(x["saving"]) + (r"$^\dagger$" if x["delta_mAP50_coco"] < -0.03 else "")
+
     rows = []
     for bb, n in names.items():
         b = prauc_of(f"reports/gate_scores/gate_{bb}_val.jsonl")
         d = prauc_of(f"reports/r1/distill_scores/gate_ships_{bb}_distill_r1b_val.jsonl")
-        sv = load(f"cascade/distill/{bb}.json")
-        rows.append(f"{n} & {f(b)} & {f(d)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
+        rows.append(f"{n} & {f(b)} & {f(d)} & {saved(f'cascade/distill/binary_{bb}.json')} & "
+                    f"{saved(f'cascade/distill/{bb}.json')} \\\\")
     h = prauc_of("reports/r1/distill_scores/gate_ships_mbv3large_distill_hard_r1b_val.jsonl")
-    sv = load("cascade/distill/mbv3large_hard.json")
-    rows.append(f"MobileNetV3-large, soft + hard & --- & {f(h)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
+    rows.append(f"MobileNetV3-L, soft + hard & --- & {f(h)} & --- & {saved('cascade/distill/mbv3large_hard.json')} \\\\")
     mse = prauc_of("reports/r1/distill_scores/gate_ships_mbv3large_distill_r1_val.jsonl")
-    sv = load("cascade/distill/mbv3large_mse.json")
-    rows.append(f"MobileNetV3-large, squared error on sigmoid & --- & {f(mse)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
+    rows.append(f"MobileNetV3-L, squared error & --- & {f(mse)} & --- & {saved('cascade/distill/mbv3large_mse.json')} \\\\")
     rows.append(r"\midrule")
-    rows.append(r"\multicolumn{4}{l}{\textit{Joint training with a separate OBB head, ResNet-18 trunk}} \\")
+    rows.append(r"\multicolumn{5}{l}{\textit{Joint training with a separate OBB head, ResNet-18 trunk}} \\")
     for v, n in (("shared", "Shared backbone"), ("early_exit", "Early exit")):
         d = prauc_of(f"reports/r1/codesign_scores/r1_codesign_{v}_resnet18_val.jsonl")
-        sv = load(f"cascade/codesign/{v}.json")
-        rows.append(f"{n} & --- & {f(d)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
-    sv = load("cascade/codesign/resnet18.json")
-    rows.append(f"Independent ResNet-18 & {f(prauc_of('reports/gate_scores/gate_resnet18_val.jsonl'))} & --- & "
-                f"{pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
+        rows.append(f"{n} & --- & {f(d)} & --- & {saved(f'cascade/codesign/{v}.json')} \\\\")
     return r"""
 \begin{table}[!t]
 \centering
-\caption{Gate ranking quality on DOTA-1.5 ships (PR-AUC on all validation tiles) and arithmetic saved at the operating point chosen on held-out scenes with the sixteen-class detector. Upper block: binary training against detector-to-gate distillation with soft targets from the detector's predictions on the training tiles. Lower block: joint training of a ResNet-18 trunk with a gate and a separate oriented-box head, against the independently trained ResNet-18 gate.}
+\caption{Gate ranking quality on DOTA-1.5 ships (PR-AUC on all validation tiles) and arithmetic saved at the operating point chosen on held-out scenes with the sixteen-class detector, each gate evaluated on its own. Upper block: binary training against detector-to-gate distillation with soft targets from the detector's predictions on the training tiles. Lower block: joint training of a ResNet-18 trunk with a gate and a separate oriented-box head, to be compared with the binary ResNet-18 above. $^\dagger$Exceeds the $3$\,pp budget on held-out scenes.}
 \label{tab:codesign}
 \footnotesize
 \setlength{\tabcolsep}{3.5pt}
-\begin{tabular}{lrrr}
+\begin{tabular}{lrrrr}
 \toprule
-Gate & Binary & Distilled or joint & Saved (\%) \\
+ & \multicolumn{2}{c}{PR-AUC} & \multicolumn{2}{c}{Saved (\%)} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Gate & Binary & Variant & Binary & Variant \\
 \midrule
 """ + "\n".join(rows) + r"""
 \bottomrule
