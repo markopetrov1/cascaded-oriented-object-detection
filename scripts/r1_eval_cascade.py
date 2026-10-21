@@ -440,6 +440,9 @@ PRESETS = {
     # fused OAN head (shared-backbone cost) against its matched independent gate, seed 67
     "fused": dict(cache="runs/r1_cache/oan_val.npz", det="oan", model="fused", tasks=["ship"],
                   gates={"oan_head": ("reports/oan/gate_oan_ships_val.jsonl", 0.0)}),
+    # fused heads at backbone taps 2..10 on the frozen 50-epoch ships detector (scripts/r1_tap_study.py);
+    # gate scores and the tap's prefix and head GFLOPs are passed with --gate, --fused-prefix, --fused-head
+    "tap": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="fused", tasks=["ship"]),
     "indep": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="decoupled", tasks=["ship"],
                   gates={"mbv3large": ("reports/gate_scores/gate_mbv3large_val.jsonl", GATE_GFLOPS["mbv3large"])}),
     # HRSC2016: operating point chosen on DOTA val only, then applied unchanged
