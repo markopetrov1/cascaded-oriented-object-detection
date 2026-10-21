@@ -247,7 +247,9 @@ def main() -> int:
               "fused": {"det": oan, "head": oan.oan_head, "nc": 1}}
     thresholds = {"full": None, "decoupled": indep["threshold"], "fused": fused["threshold"]}
 
+    import os
     out = {"scenes": len(scenes), "tiles": n, "images": imgs, "operating_points": {"decoupled": indep, "fused": fused},
+           "cpu_count": os.cpu_count(), "loadavg_start": os.getloadavg(),
            "conf": 0.25, "max_det": 1000, "merge": "class-wise rotated NMS, probIoU, IoU 0.3", "runs": {}}
     configs = {"streaming": {"gate_batch": 1, "det_batch": 1}, "batched": {"gate_batch": 32, "det_batch": 16}}
     with torch.inference_mode():
@@ -283,6 +285,7 @@ def main() -> int:
         for kind in ("decoupled", "fused"):
             r = out["runs"][f"{cname}/{kind}"]
             r["time_saved_vs_full"] = 1 - r["total_ms"] / f
+    out["loadavg_end"] = os.getloadavg()
     Path(REPO / args.out).parent.mkdir(parents=True, exist_ok=True)
     (REPO / args.out).write_text(json.dumps(out, indent=2, default=float))
     print("wrote", args.out)
