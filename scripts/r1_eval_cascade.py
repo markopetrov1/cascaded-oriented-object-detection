@@ -342,6 +342,8 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
                                   delta_mAP50_coco=pm["mAP50_coco"] - fm["mAP50_coco"],
                                   delta_mAP50_95_coco=pm["mAP50_95_coco"] - fm["mAP50_95_coco"],
                                   saving_if_gate_free=1 - pm["accept_rate"],
+                                  # share of the net saving; the paper reports the share of the skipped
+                                  # work instead (charged() in scripts/r1_paper_numbers.py)
                                   charged_share=float(pm["p_plus"] * (1 - pm["tpr"]) / s) if s > 0 else None,
                                   bootstrap=bootstrap(cache, pooled, classes, g_pool, det_g, model))
         out[rule] = res_rule

@@ -405,12 +405,25 @@ def taps() -> None:
             put(f"sdTap{w}", f"{v.std(ddof=1):.1f}")
         else:
             put(f"sdTap{w}", None)
-    if all(runs.values()):
+    c = components()
+    if all(runs.values()) and c is not None:
         best = max(words, key=lambda k: runs[k]["risk"]["pooled"]["saving"])
         put("tapBest", best)
         pc("saveTapBest", runs[best]["risk"]["pooled"]["saving"])
+        # Time saving the identity predicts for each tap from its measured prefix and head latency
+        # (ships detector, batch 1 and per tile at batch 16), as idPred* does for the cascades.
+        det = c["detectors"]["yolo11m_ships_p50"]
+        per = lambda b: det["fp32"][str(b)]["median_ms"] / b
+        for b, name in ((1, "Stream"), (16, "Batch")):
+            pred = []
+            for k in words:
+                f = c["prefix"][str(k)]["fp32"][str(b)]
+                pi, eta = f["prefix"]["median_ms"] / b / per(b), f["head"]["median_ms"] / b / per(b)
+                pred.append((1 - pi) * (1 - runs[k]["risk"]["pooled"]["accept_rate"]) - eta)
+            pc(f"tapTime{name}Best", max(pred), 0)
     else:
-        put("tapBest", None); put("saveTapBest", None)
+        for k in ("tapBest", "saveTapBest", "tapTimeStreamBest", "tapTimeBatchBest"):
+            put(k, None)
 
 
 def teaser() -> None:
