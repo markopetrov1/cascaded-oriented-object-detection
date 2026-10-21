@@ -76,7 +76,8 @@ def save(fig, name: str, outdir: str = "reports/figures") -> None:
 
     out = Path(outdir)
     out.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out / f"{name}.pdf")
+    # No creation date in the PDF, so regenerating a figure from the same data gives the same bytes.
+    fig.savefig(out / f"{name}.pdf", metadata={"CreationDate": None})
     fig.savefig(out / f"{name}.png")
     plt.close(fig)
     print(f"  wrote {out}/{name}.{{pdf,png}}")
