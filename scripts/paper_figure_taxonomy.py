@@ -33,10 +33,13 @@ COLUMNS = [
 ]
 
 ROWS = [
-    ("Plastiras et al.\nICDSC 2018", [NO, YES, YES, PARTIAL, NO, NO, NO]),
-    ("R$^2$-CNN\nTGRS 2019", [NO, YES, YES, YES, NO, NO, NO]),
-    # FPS is wall-clock throughput, so OAN does report wall-clock.
-    ("OAN\nSci. China 2023", [NO, YES, YES, YES, NO, NO, NO]),
+    # Plastiras et al. compare tile-selection policies at several input sizes but sweep no threshold;
+    # R2-CNN sweeps the detection-score threshold (its Tables II, III, VII), never the patch classifier's.
+    ("Plastiras et al.\nICDSC 2018", [NO, YES, PARTIAL, PARTIAL, NO, NO, NO]),
+    ("R$^2$-CNN\nTGRS 2019", [NO, YES, NO, YES, NO, NO, NO]),
+    # FPS is wall-clock throughput, so OAN does report wall-clock; it sweeps the share of patches
+    # removed (its Table 9) and the activation threshold (its Fig. 9).
+    ("OAN\nSci. China 2024", [NO, YES, YES, YES, NO, NO, NO]),
     ("This work", [YES, YES, YES, YES, YES, YES, YES]),
 ]
 

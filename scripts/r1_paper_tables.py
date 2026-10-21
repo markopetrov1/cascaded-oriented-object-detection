@@ -77,7 +77,7 @@ def sweep_table() -> str:
 
 \begin{table*}[!t]
 \centering
-\caption{Every DOTA-1.5 gating task, ordered by positive-tile rate, with a MobileNetV3-large gate and the sixteen-class detector. \emph{Save} is detector arithmetic saved at the operating point chosen on held-out scenes, against running the detector on every tile; $\Delta$AP is the change in image-level AP$@0.5$ ($101$-point) at that point, in percentage points. \emph{Charged} is the share of the skipped detector work that comes from rejecting target-bearing tiles. The last two columns repeat the first version's protocol, which selects and reports on the same tiles. The HRSC2016 row uses the ships detector and a DOTA-chosen operating point. PR-AUC and full-pass AP are on all validation tiles.}
+\caption{Every DOTA-1.5 gating task, ordered by positive-tile rate, with a MobileNetV3-large gate and the sixteen-class detector. \emph{Save} is detector arithmetic saved at the operating point chosen on held-out scenes, against running the detector on every tile; {\protect\mathversion{normal}$\Delta$}AP is the change in image-level AP$@0.5$ ($101$-point) at that point, in percentage points. \emph{Charged} is the share of the skipped detector work that comes from rejecting target-bearing tiles. The last two columns repeat the first version's protocol, which selects and reports on the same tiles. The HRSC2016 row uses the ships detector and a DOTA-chosen operating point. PR-AUC and full-pass AP are on all validation tiles.}
 \label{tab:sweep}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -263,7 +263,7 @@ def strata_table() -> str:
     return r"""
 \begin{table*}[!t]
 \centering
-\caption{Stratified behaviour at the operating points chosen on held-out scenes (sixteen-class detector, ResNet-50 gates). Strata are properties of the scene, so AP$@0.5$ ($101$-point) is computed per stratum for the full pass, with $\Delta$AP the cascade's change in percentage points. Ground sampling distance is unknown for eight scenes, which are omitted.}
+\caption{Stratified behaviour at the operating points chosen on held-out scenes (sixteen-class detector, ResNet-50 gates). Strata are properties of the scene, so AP$@0.5$ ($101$-point) is computed per stratum for the full pass, with {\protect\mathversion{normal}$\Delta$}AP the cascade's change in percentage points. Ground sampling distance is unknown for eight scenes, which are omitted.}
 \label{tab:strat}
 \footnotesize
 \setlength{\tabcolsep}{5pt}
