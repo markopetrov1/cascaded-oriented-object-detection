@@ -505,14 +505,19 @@ def distill() -> None:
         num("praucDistLo", min(dist.values()), 3); num("praucDistHi", max(dist.values()), 3)
         diffs = [dist[b] - binr[b] for b in bbs]
         num("praucDistDiffLo", min(diffs), 3); num("praucDistDiffHi", max(diffs), 3)
+        num("praucDistDiffAbs", max(abs(d) for d in diffs), 3)
         put("nDistBetter", sum(1 for d in diffs if d > 0))
     else:
-        for k in ("praucDistLo", "praucDistHi", "praucDistDiffLo", "praucDistDiffHi", "nDistBetter"):
+        for k in ("praucDistLo", "praucDistHi", "praucDistDiffLo", "praucDistDiffHi", "praucDistDiffAbs", "nDistBetter"):
             put(k, None)
     num("praucBinLo", min(binr.values()), 3); num("praucBinHi", max(binr.values()), 3)
     num("praucDistMbvl", dist["mbv3large"], 3)
     num("praucDistMse", prauc_file("reports/r1/distill_scores/gate_ships_mbv3large_distill_r1_val.jsonl"), 3)
     num("praucDistHard", prauc_file("reports/r1/distill_scores/gate_ships_mbv3large_distill_hard_r1b_val.jsonl"), 3)
+    tg = load("distill_targets.json")
+    num("distTargetPrauc", tg["prauc_vs_labels"] if tg else None, 3)
+    num("distTargetMeanPos", tg["mean_positive"] if tg else None, 2)
+    num("distTargetMeanEmpty", tg["mean_empty"] if tg else None, 2)
     for rel, M in (("cascade/distill/mbv3large.json", "saveDistMbvl"), ("cascade/distill/mbv3large_hard.json", "saveDistHard"),
                    ("cascade/distill/mbv3large_mse.json", "saveDistMse")):
         d = load(rel)

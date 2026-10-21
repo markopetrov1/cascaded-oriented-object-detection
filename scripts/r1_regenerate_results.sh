@@ -41,6 +41,7 @@ $PY scripts/r1_calibration_ties.py --task ship
 $PY scripts/r1_dota10_empty_rate.py
 $PY scripts/r1_soda_dota_overlap.py
 $PY scripts/r1_codesign_cost.py
+$PY scripts/r1_distill_targets.py
 
 # 4. Timing: merge the clean benchmark runs (runs 3 and 4, after the set_device fix)
 $PY scripts/r1_merge_benchmarks.py reports/r1/speed/components_run3.json reports/r1/speed/components_run4.json
