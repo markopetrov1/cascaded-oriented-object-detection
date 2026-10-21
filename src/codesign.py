@@ -170,7 +170,11 @@ def shared_backbone_loss(
         )
         obb_total = obb_breakdown["total"]
     total = gate_weight * gate_loss + obb_weight * obb_total
-    return {"total": total, "gate": gate_loss, "obb": obb_total, **obb_breakdown}
+    # The breakdown's own "total" must not overwrite the combined loss: unpacking it last
+    # used to replace the gate-plus-OBB total by the unweighted OBB loss, so the gate head
+    # was never trained (failure mode F3). Its components are kept under prefixed keys.
+    return {**{f"obb_{k}": v for k, v in obb_breakdown.items()},
+            "total": total, "gate": gate_loss, "obb": obb_total}
 
 
 # ---------- 2. Early-exit detector ----------------------------------------
@@ -399,4 +403,7 @@ def relaxed_gating_loss(
         )
         obb_total = obb_breakdown["total"]
     total = obb_total - cfg.drop_reward * drop_frac
-    return {"total": total, "obb": obb_total, "drop_frac": drop_frac.detach(), **obb_breakdown}
+    # As in shared_backbone_loss: keep the breakdown from overwriting the total (which
+    # silently dropped the drop reward).
+    return {**{f"obb_{k}": v for k, v in obb_breakdown.items()},
+            "total": total, "obb": obb_total, "drop_frac": drop_frac.detach()}
