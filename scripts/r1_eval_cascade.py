@@ -443,6 +443,10 @@ PRESETS = {
     # fused heads at backbone taps 2..10 on the frozen 50-epoch ships detector (scripts/r1_tap_study.py);
     # gate scores and the tap's prefix and head GFLOPs are passed with --gate, --fused-prefix, --fused-head
     "tap": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="fused", tasks=["ship"]),
+    # one gate at a time on ships with the sixteen-class detector, gates passed with --gate:
+    # redone distillation (F2) and the fixed joint-training variants (F3)
+    "distill": dict(cache="runs/r1_cache/multiclass_val.npz", det="multiclass", model="decoupled", tasks=["ship"]),
+    "codesign": dict(cache="runs/r1_cache/multiclass_val.npz", det="multiclass", model="decoupled", tasks=["ship"]),
     "indep": dict(cache="runs/r1_cache/shipsp50_val.npz", det="shipsp50", model="decoupled", tasks=["ship"],
                   gates={"mbv3large": ("reports/gate_scores/gate_mbv3large_val.jsonl", GATE_GFLOPS["mbv3large"])}),
     # HRSC2016: operating point chosen on DOTA val only, then applied unchanged
