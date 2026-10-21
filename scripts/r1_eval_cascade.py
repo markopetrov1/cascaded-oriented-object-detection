@@ -199,7 +199,8 @@ def risk_lower_bound(cache: EvalCache, acc: np.ndarray, classes: list[int], imag
 
 def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, budget: float,
              n_quantiles: int, workers: int, gates: dict[str, tuple[str, float]] | None = None,
-             transfer: dict | None = None, out_name: str | None = None) -> dict:
+             transfer: dict | None = None, out_name: str | None = None,
+             det_gflops: float | None = None) -> dict:
     t0 = time.time()
     cache = EvalCache.load(REPO / cache_path)
     classes = task_classes(task) if det_key != "hrsc" else [0]
@@ -210,7 +211,7 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
     fold_images["all"] = np.ones(len(cache.images), bool)
     fold_tiles = {f: fold_images[f][cache.tile_image] for f in fold_images}
     gates = gates or gate_files(preset, task)
-    det_g = DET_GFLOPS[det_key]
+    det_g = det_gflops or DET_GFLOPS[det_key]
     names = list(gates)
     raw = {g: load_scores(gates[g][0], cache.tiles) for g in names}
 
@@ -442,6 +443,8 @@ def main() -> int:
     p.add_argument("--gate", action="append", default=None,
                    help="override gates: NAME=PATH[:GFLOPS] (repeatable)")
     p.add_argument("--out-name", default=None, help="output file stem (default: task)")
+    p.add_argument("--det-gflops", type=float, default=None,
+                   help="override the detector's GFLOPs per tile (e.g. a reduced input size)")
     args = p.parse_args()
     SEL["metric"] = METRICS[args.metric]
     cfg = dict(PRESETS[args.preset])
@@ -457,7 +460,7 @@ def main() -> int:
     for task in tasks:
         out = run_task(args.preset, task, cfg["cache"], cfg["det"], cfg["model"], args.budget,
                        args.quantiles, args.workers, gates=cfg.get("gates"), transfer=cfg.get("transfer"),
-                       out_name=args.out_name)
+                       out_name=args.out_name, det_gflops=args.det_gflops)
         rk, rf, pf, ss = (out["risk"]["pooled"], out["risk_full"]["pooled"], out["plain_full"]["pooled"],
                           out["same_split"])
         fmt = lambda x: (f"{100*x['saving']:.1f}%/{100*x['delta_mAP50_coco']:+.2f}pp"
