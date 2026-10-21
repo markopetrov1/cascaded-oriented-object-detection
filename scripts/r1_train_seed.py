@@ -35,7 +35,19 @@ from ultralytics.utils import RANK  # noqa: E402
 from src.oan import OANOBBModel  # noqa: E402
 
 PROJECT = REPO / "runs" / "obb" / "runs" / "r1_seeds"
-DATA = "configs/datasets/dota_ships.yaml"
+
+
+def resolved_data() -> str:
+    """configs/datasets/dota_ships.yaml keeps a <REPO_ROOT> placeholder, which Ultralytics would
+    resolve against its datasets directory; train from a copy that names the absolute path."""
+    text = (REPO / "configs/datasets/dota_ships.yaml").read_text().replace("<REPO_ROOT>", str(REPO))
+    out = PROJECT / "dota_ships.yaml"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(text)
+    return str(out)
+
+
+DATA = resolved_data()
 COMMON = dict(data=DATA, epochs=50, patience=50, batch=16, imgsz=1024, workers=8,
               deterministic=True, amp=True, val=True, plots=False, save=True,
               exist_ok=True, optimizer="auto")
