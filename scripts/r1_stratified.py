@@ -6,7 +6,7 @@ class and called a tile "boundary" when that object spanned 70 % of the tile.
 Here every stratum is defined from the gated class itself:
 
   * sensor source and ground sampling distance are properties of the scene, so
-    image-level mAP@0.5 (VOC07) is computed per bucket for the full pass and the
+    image-level mAP@0.5 (101-point; 11-point VOC07 alongside) is computed per bucket for the full pass and the
     cascade, with p+, accept rate and positive-tile acceptance;
   * size uses the gated-class objects: per tile, the largest gated object
     (sqrt of the oriented-box area); per object, its own size;
@@ -109,11 +109,13 @@ def main() -> int:
     def image_row(img: np.ndarray) -> dict:
         tm = img[cache.tile_image]
         r = tile_row(tm)
-        f = evaluate(cache, full & tm, classes, images=img)["mAP50_voc07"]
-        c = evaluate(cache, acc & tm, classes, images=img)["mAP50_voc07"]
+        f = evaluate(cache, full & tm, classes, images=img)
+        c = evaluate(cache, acc & tm, classes, images=img)
         n_obj = int((gsel & ~cache.gt_difficult & img[cache.gt_image]).sum())
-        return dict(r, n_images=int(img.sum()), n_objects=n_obj, mAP50_full=f, mAP50_cascade=c,
-                    delta_pp=100 * (c - f))
+        return dict(r, n_images=int(img.sum()), n_objects=n_obj,
+                    mAP50_full=f["mAP50_coco"], mAP50_cascade=c["mAP50_coco"],
+                    delta_pp=100 * (c["mAP50_coco"] - f["mAP50_coco"]),
+                    mAP50_voc07_full=f["mAP50_voc07"], mAP50_voc07_cascade=c["mAP50_voc07"])
 
     ff = found(cache, full, classes, 0.25)
     fc = found(cache, acc, classes, 0.25)

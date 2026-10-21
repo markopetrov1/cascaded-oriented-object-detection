@@ -218,7 +218,7 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--device", default="0")
     p.add_argument("--images", type=int, default=60, help="number of DOTA val scenes (fold B, every k-th)")
-    p.add_argument("--repeats", type=int, default=3)
+    p.add_argument("--repeats", type=int, default=5)
     p.add_argument("--out", default="reports/r1/speed/runtime.json")
     args = p.parse_args()
     dev = torch.device(f"cuda:{args.device}")
@@ -254,7 +254,9 @@ def main() -> int:
         for cname, c in configs.items():
             for kind in ("full", "decoupled", "fused"):
                 cfg = dict(c, conf=0.25, max_det=1000, threshold=thresholds[kind])
-                pipeline(kind, scenes[:5], models[kind], cfg, dev, Timer())   # warm-up
+                # Warm-up over every scene: accepted-tile batches take many shapes, and a short
+                # warm-up left the first timed repeat several times slower than the rest.
+                pipeline(kind, scenes, models[kind], cfg, dev, Timer())
                 totals, counts = [], None
                 for _ in range(args.repeats):
                     torch.cuda.synchronize(); t0 = time.perf_counter()

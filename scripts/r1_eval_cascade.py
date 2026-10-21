@@ -45,13 +45,24 @@ CALIBS = ["identity", "temperature", "platt", "isotonic", "context_adaptive"]
 FOLD_FILE = REPO / "configs/splits/r1_val_2fold.yaml"
 META = REPO / "data/processed/dota_multiclass/metadata/tiles.jsonl"
 BB = ["mbv3small", "mbv3large", "resnet18", "resnet50", "effb0", "tiny"]
-# Per-tile gate cost (thop, GFLOPs at 256 px) from reports/speed; the sweep gate
-# file measures 0.607 for the same architecture, see WP6.
+# Per-tile costs (thop, GFLOPs; gates at 256 px, detectors at 1024 px), all from the one
+# measurement protocol in scripts/r1_benchmark.py when its output exists. The fallback
+# values are the first submission's, kept so the script runs before the benchmark has.
 GATE_GFLOPS = {"mbv3small": 0.1444, "mbv3large": 0.5609, "resnet18": 4.7635,
                "resnet50": 10.7930, "effb0": 1.0043, "tiny": 5.0041, "sweep_mbv3large": 0.6069}
 DET_GFLOPS = {"multiclass": 184.17, "shipsp50": 184.02, "yolo11n": 17.12, "oan": 184.16}
 # Shared-backbone cost of the fused OAN head at tap 10 (raw/audit/backbone_share_output.txt).
 FUSED = {"prefix": 101.37, "head": 0.673}
+COMPONENTS = REPO / "reports/r1/speed/components.json"
+if COMPONENTS.exists():
+    _c = json.load(open(COMPONENTS))
+    GATE_GFLOPS.update({k: _c["gates"][k]["gflops"] for k in BB})
+    GATE_GFLOPS["sweep_mbv3large"] = _c["gates"]["mbv3large_sweep"]["gflops"]
+    DET_GFLOPS.update(multiclass=_c["detectors"]["yolo11m_multiclass"]["gflops"],
+                      shipsp50=_c["detectors"]["yolo11m_ships_p50"]["gflops"],
+                      yolo11n=_c["detectors"]["yolo11n_ships"]["gflops"],
+                      oan=_c["detectors"]["yolo11m_oan_joint"]["gflops"])
+    FUSED.update(prefix=_c["prefix"]["10"]["prefix_gflops"], head=_c["prefix"]["10"]["head_gflops"])
 # Selection metric: name in evaluate(), index in _score_candidate's result, index in BootstrapMAP's.
 METRICS = {"coco": ("mAP50_coco", 6, 1), "voc07": ("mAP50_voc07", 5, 0)}
 SEL = {"metric": METRICS["coco"]}
