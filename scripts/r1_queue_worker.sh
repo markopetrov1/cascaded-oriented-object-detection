@@ -12,7 +12,7 @@
 #
 # A job whose script contains the line "# EXCLUSIVE" (timing measurements) only
 # starts when no other queue job is running, and while it waits at the head of
-# the queue no worker starts anything else.
+# the queue or runs, no worker starts anything else.
 #
 # A job may pin a card with "# GPU: <n>". The job sees its card as
 # $R1_GPU and CUDA_VISIBLE_DEVICES is left alone, so scripts pass device=$R1_GPU.
@@ -30,6 +30,10 @@ card_free() { PROJECT_GPU="$GPU" MINE_PGID="${1:-}" "$R/scripts/gpu_guard.sh" >/
 
 next_job() {
   local f
+  # A running exclusive job blocks every other start, not only a pending one.
+  for f in "$Q"/running/*.sh; do
+    [ -f "$f" ] && grep -q '^# EXCLUSIVE' "$f" && return 1
+  done
   for f in $(ls "$Q/pending" 2>/dev/null | sort); do
     local path="$Q/pending/$f"
     local pin; pin=$(grep -m1 '^# GPU:' "$path" | awk '{print $3}')
