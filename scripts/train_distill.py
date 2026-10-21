@@ -43,6 +43,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--device", default=None)
     p.add_argument("--name", default=None)
     p.add_argument("--soft-weight", type=float, default=1.0)
+    p.add_argument("--soft-loss", choices=("bce", "mse"), default="bce",
+                   help="cross-entropy against the soft target (default) or MSE on the sigmoid, which saturates")
     p.add_argument("--hard-weight", type=float, default=0.0)
     p.add_argument("--temperature", type=float, default=1.0)
     p.add_argument("--patience", type=int, default=10, help="Early stopping patience")
@@ -91,7 +93,8 @@ def main() -> int:
     model = build_gate_model(cfg["backbone"]).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=cfg.get("lr", 1e-3), weight_decay=cfg.get("weight_decay", 1e-4))
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
-    distill_cfg = DistillationConfig(soft_target_weight=args.soft_weight, hard_target_weight=args.hard_weight, temperature=args.temperature)
+    distill_cfg = DistillationConfig(soft_target_weight=args.soft_weight, hard_target_weight=args.hard_weight,
+                                     temperature=args.temperature, soft_loss=args.soft_loss)
 
     tile_id_to_soft = {it[0].stem: float(soft_targets_train[i]) for i, it in enumerate(train_ds.items)}
     history = []

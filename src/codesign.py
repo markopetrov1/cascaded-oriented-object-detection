@@ -262,6 +262,11 @@ class DistillationConfig:
     soft_target_weight: float = 1.0
     hard_target_weight: float = 0.0  # combine with soft labels if > 0
     temperature: float = 1.0
+    # "bce": cross-entropy against the soft target, gradient p - s with respect to the logit.
+    # "mse": squared error on sigmoid(logit), the first submission's choice; its gradient
+    # carries a factor p(1 - p), so once the outputs saturate near 0 (most soft targets
+    # are) training stops, which is what collapsed the distilled gates (failure mode F2).
+    soft_loss: str = "bce"
 
 
 def soft_target_from_detector(
@@ -289,14 +294,15 @@ def distillation_loss(
     hard_labels: torch.Tensor | None,
     cfg: DistillationConfig,
 ) -> torch.Tensor:
-    """Mix MSE on the soft target with optional BCE on the hard label.
-
-    Soft target is in [0, 1]; we apply ``temperature`` by passing
-    ``logit / T`` through sigmoid then matching MSE — the standard
-    distillation idiom.
-    """
-    p = torch.sigmoid(student_logits / max(cfg.temperature, 1e-3))
-    soft = F.mse_loss(p, soft_targets)
+    """Soft-target loss (cross-entropy by default, see DistillationConfig.soft_loss) with
+    optional BCE on the hard label. The temperature divides the student's logit."""
+    z = student_logits / max(cfg.temperature, 1e-3)
+    if cfg.soft_loss == "mse":
+        soft = F.mse_loss(torch.sigmoid(z), soft_targets)
+    elif cfg.soft_loss == "bce":
+        soft = F.binary_cross_entropy_with_logits(z, soft_targets)
+    else:
+        raise ValueError(cfg.soft_loss)
     if cfg.hard_target_weight > 0 and hard_labels is not None:
         hard = F.binary_cross_entropy_with_logits(student_logits, hard_labels.float())
         return cfg.soft_target_weight * soft + cfg.hard_target_weight * hard
