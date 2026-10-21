@@ -222,6 +222,9 @@ def main() -> int:
     p.add_argument("--out", default="reports/r1/speed/runtime.json")
     args = p.parse_args()
     dev = torch.device(f"cuda:{args.device}")
+    # Make it the current device: torch.cuda.synchronize() and CUDA events otherwise refer to
+    # cuda:0 and do not wait for, or time, work running on another card.
+    torch.cuda.set_device(dev)
     torch.backends.cudnn.benchmark = False
 
     folds = yaml.safe_load(open(REPO / "configs/splits/r1_val_2fold.yaml"))

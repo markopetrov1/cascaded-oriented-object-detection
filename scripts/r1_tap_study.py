@@ -125,6 +125,8 @@ def main() -> int:
     torch.manual_seed(args.seed); np.random.seed(args.seed)
     dev = torch.device("cpu" if args.device == "cpu" else f"cuda:{args.device}")
     amp = dict(device_type=dev.type, dtype=torch.float16, enabled=dev.type == "cuda")
+    if dev.type == "cuda":
+        torch.cuda.set_device(dev)
     det = YOLO(str(REPO / DETECTOR), task="obb").model.float().to(dev).eval()
     for q in det.parameters():
         q.requires_grad_(False)

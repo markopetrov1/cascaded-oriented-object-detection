@@ -126,6 +126,9 @@ def main() -> int:
     p.add_argument("--out", default="reports/r1/speed/components.json")
     args = p.parse_args()
     dev = torch.device(f"cuda:{args.device}")
+    # Make it the current device: torch.cuda.synchronize() and CUDA events otherwise refer to
+    # cuda:0 and do not wait for, or time, work running on another card.
+    torch.cuda.set_device(dev)
     torch.backends.cudnn.benchmark = False
     smi = subprocess.run(["nvidia-smi", "--query-gpu=index,name,memory.used,utilization.gpu,temperature.gpu,clocks.sm",
                           "--format=csv,noheader"], capture_output=True, text=True, timeout=20).stdout

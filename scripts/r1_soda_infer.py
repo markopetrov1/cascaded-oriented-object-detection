@@ -65,6 +65,9 @@ def main() -> int:
     p.add_argument("--batch", type=int, default=16)
     args = p.parse_args()
     dev = torch.device(f"cuda:{args.device}")
+    # Make it the current device: torch.cuda.synchronize() and CUDA events otherwise refer to
+    # cuda:0 and do not wait for, or time, work running on another card.
+    torch.cuda.set_device(dev)
     by_img = defaultdict(list)
     for line in open(META):
         r = json.loads(line)

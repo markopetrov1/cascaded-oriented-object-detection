@@ -38,6 +38,9 @@ def main() -> int:
     p.add_argument("--scenes", type=int, default=6)
     args = p.parse_args()
     dev = torch.device(f"cuda:{args.device}")
+    # Make it the current device: torch.cuda.synchronize() and CUDA events otherwise refer to
+    # cuda:0 and do not wait for, or time, work running on another card.
+    torch.cuda.set_device(dev)
     folds = yaml.safe_load(open(REPO / "configs/splits/r1_val_2fold.yaml"))
     imgs = folds["B"][:: max(1, len(folds["B"]) // 60)][: args.scenes]
     by_img = defaultdict(list)
