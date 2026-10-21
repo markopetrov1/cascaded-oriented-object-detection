@@ -112,12 +112,14 @@ def costs() -> None:
     for k, w in (("2", "Two"), ("4", "Four"), ("6", "Six"), ("8", "Eight"), ("10", "Ten")):
         num(f"prefixgflops{w}", pre[k]["prefix_gflops"], 1)
         num(f"prefixshare{w}", 100 * pre[k]["prefix_gflops"] / det["gflops"], 0)
+    num("flopsfactor", det["gflops"] / gate["gflops"], 0)
     num("gatelatratioone", per(det, 1) / per(gate, 1), 1)
     num("gatelatratiobatched", per(det, 16) / per(gate, 32), 0)
     num("gatebatchspeedup", per(gate, 1) / per(gate, 32), 0)
     put("benchwarmup", c["protocol"]["warmup"])
     if "merge" in c:
         pc("benchSpreadMedian", c["merge"]["median_relative_difference"], 1)
+        num("benchSpreadMaxFactor", 1 + c["merge"]["max_relative_difference"], 1)
     put("benchiters", c["protocol"]["iters"])
 
 
@@ -145,6 +147,17 @@ def runtime() -> None:
             if tot and "detector" in st:
                 pc(f"nonDet{M}", 1 - st["detector"] / tot, 0)
                 pc(f"nms{M}", st.get("nms", 0) / tot, 0)
+                if mode == "batched":
+                    sd = r["runs"]["batched/decoupled"]
+                    num("rtBatchGatePerTile", sd["stage_ms"]["gate"] / sd["n_tiles"], 2)
+                    num("rtBatchDetPerAcc", sd["stage_ms"]["detector"] / max(1, sd["n_accepted"]), 1)
+                    num("rtBatchPrePerTile", sd["stage_ms"]["transfer+preprocess"] / sd["n_tiles"], 1)
+                    num("rtTilesPerScene", r["tiles"] / r["scenes"], 0)
+                    num("rtAccPerScene", sd["n_accepted"] / r["scenes"], 1)
+            else:                       # stage profile comes from the synchronised pass (job 0961)
+                MISSING.append("speed/runtime.json stage profile")
+                put(f"nonDet{M}", None)
+                put(f"nms{M}", None)
     put("rtScenes", r["scenes"])
     put("rtTiles", r["tiles"])
     for mode, M in (("streaming", "Stream"), ("batched", "Batch")):
@@ -154,6 +167,13 @@ def runtime() -> None:
             if kind != "full":
                 pc(f"rt{M}{K}Saved", e["time_saved_vs_full"], 0)
                 num(f"rt{M}{K}Accept", e["accept_rate"], 3)
+
+
+def charged(r: dict) -> float:
+    """Share of the skipped detector work that came from target-bearing tiles:
+    p+(1-TPR) / [p+(1-TPR) + (1-p+)(1-FPR)]. The gate's own cost is a separate term."""
+    drop, skip = r["p_plus"] * (1 - r["tpr"]), (1 - r["p_plus"]) * (1 - r["fpr"])
+    return drop / (drop + skip) if drop + skip > 0 else 0.0
 
 
 def cascade(prefix: str, rel: str) -> dict | None:
@@ -170,7 +190,7 @@ def cascade(prefix: str, rel: str) -> dict | None:
     num(f"tpr{prefix}", r["tpr"])
     num(f"fpr{prefix}", r["fpr"])
     num(f"acc{prefix}", r["accept_rate"])
-    pc(f"charged{prefix}", r["charged_share"] or 0.0, 0)
+    pc(f"charged{prefix}", charged(r), 0)
     num(f"fullpass{prefix}", d["full_pass"]["mAP50_coco"])
     num(f"fullpassvoc{prefix}", d["full_pass"]["mAP50_voc07"])
     pc(f"saveLo{prefix}", b["saving_ci95"][0]); pc(f"saveHi{prefix}", b["saving_ci95"][1])
@@ -305,7 +325,7 @@ def hrsc() -> None:
         put(f"fprn{R}HRSC", x["fpr_counts"][1])
         num(f"fprLo{R}HRSC", x["fpr_ci95_clopper_pearson"][0], 2)
         num(f"fprHi{R}HRSC", x["fpr_ci95_clopper_pearson"][1], 2)
-        pc(f"charged{R}HRSC", x["charged_share"] or 0.0, 0)
+        pc(f"charged{R}HRSC", charged(x), 0)
 
 
 def prior() -> None:
@@ -375,6 +395,97 @@ def teaser() -> None:
     pc("teaserOverallRejected", d["overall_rejected_positive_share"], 0)
 
 
+def detsize() -> None:
+    """YOLO11n arm: full pass, MobileNetV3-large cascade, and the PR-AUC rule's choice (ResNet-50)."""
+    c = components()
+    for task, T in (("ship", "Ships"), ("plane", "Planes"), ("small_vehicle", "SmallVeh")):
+        m = load(f"cascade/pillars/{task}.json")
+        if m is not None:
+            num(f"totM{T}", (1 - m["risk"]["pooled"]["saving"]) * m["detector_gflops"], 1)
+        for s, S in ((1024, "Ten"), (896, "Nine"), (768, "Seven")):
+            d = load(f"cascade/yolo11n/{task}_imgsz{s}_mbv3large.json")
+            r = load(f"cascade/yolo11n/{task}_imgsz{s}.json")
+            if d is not None:
+                num(f"apN{T}{S}", d["full_pass"]["mAP50_coco"], 3)
+                pc(f"saveN{T}{S}", d["risk"]["pooled"]["saving"])
+                abs_pp(f"dapN{T}{S}", d["risk"]["pooled"]["delta_mAP50_coco"])
+                num(f"totN{T}{S}", (1 - d["risk"]["pooled"]["saving"]) * d["detector_gflops"], 2)
+            else:
+                for k in ("apN", "saveN", "dapN", "totN"):
+                    put(f"{k}{T}{S}", None)
+            if r is not None:
+                pc(f"saveNRisk{T}{S}", r["risk"]["pooled"]["saving"])
+            else:
+                put(f"saveNRisk{T}{S}", None)
+        if m is not None and load(f"cascade/yolo11n/{task}_imgsz1024_mbv3large.json") is not None:
+            d = load(f"cascade/yolo11n/{task}_imgsz1024_mbv3large.json")
+            put(f"apN{T}Loss", f"{100 * (m['full_pass']['mAP50_coco'] - d['full_pass']['mAP50_coco']):.0f}")
+        else:
+            put(f"apN{T}Loss", None)
+    if c is not None:
+        g50, dn = c["gates"]["resnet50"]["gflops"], c["detectors"]["yolo11n_ships"]["gflops"]
+        num("gateRfiftyshareN", 100 * g50 / dn, 0)
+        gl = c["gates"]["mbv3large"]["fp32"]["1"]["median_ms"]
+        num("gateNlatshareone", 100 * gl / c["detectors"]["yolo11n_ships"]["fp32"]["1"]["median_ms"], 0)
+
+
+def codesign() -> None:
+    import json as _j
+    g = load("codesign_gflops.json")
+    for v, V in (("shared", "Shared"), ("early_exit", "Early"), ("resnet18", "IndepR")):
+        d = load(f"cascade/codesign/{v}.json")
+        if d is None:
+            for k in ("prauc", "save", "dap"):
+                put(f"{k}Cod{V}", None)
+            continue
+        num(f"praucCod{V}", d["selections"]["risk"]["all"]["select_fold_prauc"], 3)
+        pc(f"saveCod{V}", d["risk"]["pooled"]["saving"])
+        abs_pp(f"dapCod{V}", d["risk"]["pooled"]["delta_mAP50_coco"])
+    if g is not None:
+        num("gflopsCodEarly", g["early_exit"], 2)
+        num("gflopsCodShared", g["shared"], 2)
+    h = load(str(REPO / "runs/codesign_shared_resnet18/history.json"))
+    if h is not None:
+        num("praucCodOrigShared", max(r["val_pr_auc"] for r in h), 3)
+    h = load(str(REPO / "runs/codesign_early_exit_resnet18/history.json"))
+    if h is not None:
+        num("praucCodOrigEarly", max(r["val_pr_auc"] for r in h), 3)
+
+
+def overlap() -> None:
+    d = load("soda_dota_overlap.json")
+    if d is None:
+        return
+    put("overlapDotaScenes", commas(d["dota_scenes"]))
+    put("overlapMedianBits", f"{d['min_distance_per_soda_scene_median']:.0f}")
+
+
+def soda() -> None:
+    """SODA-A transfer: operating points chosen on DOTA val, applied unchanged."""
+    for task, T in (("ship", "Ships"), ("plane", "Planes"), ("small_vehicle", "SmallVeh")):
+        d = load(f"cascade/soda_sweep/{task}.json")
+        if d is None:
+            for k in ("fullpassSoda", "saveSoda", "dapSoda", "tprSoda", "fprSoda", "chargedSoda", "ceilSoda",
+                      "savePlainSoda", "dapPlainSoda"):
+                put(f"{k}{T}", None)
+            continue
+        t = d["transfer"]
+        num(f"fullpassSoda{T}", t["full_pass"]["mAP50_coco"], 3)
+        pc(f"ceilSoda{T}", 1 - t["full_pass"]["p_plus"])
+        x = t["risk"]
+        pc(f"saveSoda{T}", x["saving"]); abs_pp(f"dapSoda{T}", x["delta_mAP50_coco"])
+        num(f"tprSoda{T}", x["tpr"], 2); num(f"fprSoda{T}", x["fpr"], 2); pc(f"chargedSoda{T}", charged(x), 0)
+        y = t["plain_full"]
+        pc(f"savePlainSoda{T}", y["saving"]); abs_pp(f"dapPlainSoda{T}", y["delta_mAP50_coco"])
+        num(f"fprDota{T}", d["risk"]["pooled"]["fpr"], 2)
+        q = load(f"cascade/soda_pillars/{task}.json")
+        if q is not None:
+            pc(f"saveSodaRfifty{T}", q["transfer"]["risk"]["saving"])
+            abs_pp(f"dapSodaRfifty{T}", q["transfer"]["risk"]["delta_mAP50_coco"])
+        else:
+            put(f"saveSodaRfifty{T}", None); put(f"dapSodaRfifty{T}", None)
+
+
 def commas(n: int) -> str:
     return f"{n:,}".replace(",", "{,}")
 
@@ -436,7 +547,7 @@ def main() -> int:
     for p, f in (("Ships", "pillars_ship"), ("Planes", "pillars_plane"), ("SmallVeh", "pillars_small_vehicle"),
                  ("Indep", "indep_ship"), ("Fused", "fused_ship")):
         recall(p, f"object_recall/{f}.json")
-    strata(); calibration(); hrsc(); prior(); misc(); facts(); sweep_summary(); fused_extra(); teaser()
+    strata(); calibration(); hrsc(); prior(); misc(); facts(); sweep_summary(); fused_extra(); teaser(); detsize(); soda(); overlap(); codesign()
     lines = ["% Generated by scripts/r1_paper_numbers.py from reports/r1/ -- do not edit by hand."]
     seen = set()
     for name, val, note in MACROS:
