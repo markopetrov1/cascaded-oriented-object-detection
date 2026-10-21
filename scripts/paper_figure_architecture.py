@@ -17,8 +17,16 @@ from figstyle import INK, INK_MUTED, PALETTE, TEXT_WIDTH, save, use_paper_style
 
 import matplotlib.pyplot as plt
 
-GATE_G, DET_G = 0.61, 184.17          # reports/speed/*_b1.json
-GATE_MS, DET_MS = 5.96, 21.55         # ms/img at batch 1, same source
+import json
+
+# One measurement protocol for every cost (scripts/r1_benchmark.py): GFLOPs at batch 1,
+# forward-pass latency per tile at batch 1 and batched (gate 32, detector 16).
+_S = Path(__file__).resolve().parents[1] / "reports/r1/speed"
+_C = json.load(open(_S / "components_merged.json" if (_S / "components_merged.json").exists() else _S / "components.json"))
+_g, _d = _C["gates"]["mbv3large"], _C["detectors"]["yolo11m_ships_p50"]
+GATE_G, DET_G = round(_g["gflops"], 2), round(_d["gflops"], 1)
+GATE_MS = f"{_g['fp32']['1']['median_ms']:.2f}/{_g['fp32']['32']['median_ms'] / 32:.2f}"
+DET_MS = f"{_d['fp32']['1']['median_ms']:.1f}/{_d['fp32']['16']['median_ms'] / 16:.1f}"
 
 
 def box(ax, x, y, w, h, label, sub=None, colour=PALETTE[0], alpha=0.14):
@@ -116,7 +124,7 @@ def main() -> int:
                 color=INK_MUTED, zorder=4)
         x += 0.185
 
-    save(fig, "architecture")
+    save(fig, "architecture_r1", "reports/r1/figures")
     return 0
 
 

@@ -10,6 +10,14 @@ here first and recognises it later.
 The point the panel has to make in one look: the green tiles are the only
 compute a lossless gate can save, and the yellow tiles are savings bought by
 throwing detections away.
+
+The gate decisions are the held-out operating point of the MobileNetV3-large
+ship gate (reports/r1/cascade/sweep/ship_masks.npz, each tile decided by the
+threshold chosen on the other fold). The scene is chosen to be representative
+rather than flattering: among validation scenes with at least 20 tiles, 4
+ship-bearing tiles and 50 ships, the one whose share of rejected ship-bearing
+tiles is closest to the share over all of validation. Its counts go to
+reports/r1/teaser_facts.json for the caption.
 """
 from __future__ import annotations
 
@@ -26,16 +34,35 @@ import matplotlib.pyplot as plt
 
 Image.MAX_IMAGE_PIXELS = None
 
-STEM = "P1386"
 SPLIT = "val"
 CLASS = "ship"
-GATE_SCORES = "reports/gate_scores/gate_mbv3large_val.jsonl"
-# Operating point of the mbv3large gate at the 3 pp mAP tolerance, read off
-# reports/cascade/gate_mbv3large_identity.json.
-THRESHOLD = 0.95
+MASKS = "reports/r1/cascade/sweep/ship_masks.npz"
 RAW = Path("data/raw/DOTA") / SPLIT
 METADATA = "data/processed/dota_ships/metadata/tiles.jsonl"
 DISPLAY_W = 1600
+
+
+def choose_scene() -> tuple[str, dict, dict]:
+    z = np.load(MASKS)
+    acc = dict(zip(z["tiles"].tolist(), z["risk_pooled"].tolist()))
+    rows = [json.loads(l) for l in open(METADATA)]
+    rows = [r for r in rows if r["split"] == SPLIT and r["tile_id"] in acc]
+    pos_all = [r for r in rows if CLASS in r.get("class_counts", {})]
+    rate_all = sum(not acc[r["tile_id"]] for r in pos_all) / len(pos_all)
+    by = {}
+    for r in rows:
+        by.setdefault(r["source_stem"], []).append(r)
+    best = None
+    for stem, rs in by.items():
+        pos = [r for r in rs if CLASS in r.get("class_counts", {})]
+        ships = sum(1 for _ in load_gt_polygons(stem))
+        if len(rs) < 20 or len(pos) < 4 or ships < 50:
+            continue
+        rate = sum(not acc[r["tile_id"]] for r in pos) / len(pos)
+        key = (abs(rate - rate_all), -ships)
+        if best is None or key < best[0]:
+            best = (key, stem, rate)
+    return best[1], acc, {"overall_rejected_positive_share": rate_all, "scene_rejected_positive_share": best[2]}
 
 
 def load_scene():
@@ -46,9 +73,9 @@ def load_scene():
     return np.asarray(img), scale, (w, h)
 
 
-def load_gt_polygons():
+def load_gt_polygons(stem=None):
     polys = []
-    path = RAW / "labelTxt" / f"{STEM}.txt"
+    path = RAW / "labelTxt" / f"{stem or STEM}.txt"
     for line in path.read_text().splitlines():
         parts = line.split()
         if len(parts) < 10:
@@ -60,35 +87,31 @@ def load_gt_polygons():
     return polys
 
 
-def load_tiles():
+def load_tiles(acc):
     tiles = []
-    scores = {}
-    with open(GATE_SCORES) as fh:
-        for line in fh:
-            row = json.loads(line)
-            scores[row["tile_id"]] = row["prob"]
     with open(METADATA) as fh:
         for line in fh:
             row = json.loads(line)
             if row["source_stem"] != STEM or row["split"] != SPLIT:
                 continue
-            prob = scores.get(row["tile_id"])
-            if prob is None:
+            if row["tile_id"] not in acc:
                 continue
             tiles.append({
                 "x": row["x"], "y": row["y"],
                 "w": row["width"], "h": row["height"],
                 "positive": CLASS in row.get("class_counts", {}),
-                "accepted": prob >= THRESHOLD,
+                "accepted": bool(acc[row["tile_id"]]),
             })
     return tiles
 
 
 def main() -> int:
+    global STEM
     use_paper_style()
+    STEM, acc, rates = choose_scene()
     scene, scale, (w0, h0) = load_scene()
     polys = load_gt_polygons()
-    tiles = load_tiles()
+    tiles = load_tiles(acc)
 
     fig, (axl, axr) = plt.subplots(1, 2, figsize=(TEXT_WIDTH, TEXT_WIDTH * h0 / w0 / 2 + 0.55))
 
@@ -138,8 +161,12 @@ def main() -> int:
             spine.set_visible(False)
 
     fig.subplots_adjust(wspace=0.04)
-    save(fig, "teaser")
-    print(f"  scene {STEM}: {len(tiles)} tiles, {counts}")
+    save(fig, "teaser_r1", outdir="reports/r1/figures")
+    facts = {"scene": STEM, "ships": len(polys), "tiles": len(tiles), "skipped": saved,
+             "positive_tiles": counts[(True, True)] + counts[(False, True)],
+             "rejected_positive_tiles": counts[(False, True)], **rates, "masks": MASKS}
+    Path("reports/r1/teaser_facts.json").write_text(json.dumps(facts, indent=2))
+    print(f"  scene {STEM}: {len(tiles)} tiles, {counts}, {rates}")
     return 0
 
 

@@ -87,7 +87,7 @@ def main() -> int:
     ]
     ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.5, -0.22),
               ncol=3, fontsize=6.4, columnspacing=1.6, handletextpad=0.4)
-    save(fig, "taxonomy")
+    save(fig, "taxonomy_r1", "reports/r1/figures")
     return 0
 
 
