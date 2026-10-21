@@ -123,7 +123,8 @@ PUBLISHED_REGIMES = [
         "stated_skip_rate": 0.99,
         "stated_as": "'approximately 99% of the total patches do not need to pass "
                      "the heavy detector branch'",
-        "implied_p_plus": 0.01,
+        # Not measurable: 1 - (stated skip rate) would make the comparison circular.
+        "implied_p_plus": None,
         "reports": {"flops": False, "fps": False, "wallclock": True,
                     "operating_point_sweep": True, "calibration": False,
                     "zero_shot_transfer": False},
@@ -151,7 +152,8 @@ PUBLISHED_REGIMES = [
         "stated_skip_rate": 0.35,
         "stated_as": "Table 9 operating point: 35% of patches removed",
         "implied_p_plus": 0.65,
-        "reports": {"flops": False, "fps": True, "wallclock": False,
+        # FPS is a wall-clock measurement, so "wallclock" is true.
+        "reports": {"flops": False, "fps": True, "wallclock": True,
                     "operating_point_sweep": True, "calibration": False,
                     "zero_shot_transfer": False},
         "notes": "the only system whose tiling protocol matches this repo, so its "
@@ -168,16 +170,17 @@ def main() -> int:
     lo = min(per_split["train"]["empty_rate"], per_split["val"]["empty_rate"])
     hi = max(per_split["train"]["empty_rate"], per_split["val"]["empty_rate"])
     # OAN states ~39 % invalid patches in training; our own measurement is
-    # 30-32 %. The gap is most likely a difference in what counts as a valid
-    # annotation after clipping, plus their inclusion of v2.0 imagery. Carry
-    # the union as an honest band rather than picking one.
-    band = (min(lo, OAN_STATED_INVALID_TRAIN), max(hi, OAN_STATED_INVALID_TRAIN))
+    # 30-32 %. The band is our two measurements only. Their figure is reported
+    # beside it, not merged into it, because widening the band to include it
+    # would make the comparison easier to pass. DOTA-1.0's narrower annotation
+    # scope does not close the gap (scripts/r1_dota10_empty_rate.py: under 1 pp).
+    band = (lo, hi)
 
     print("Ceiling on lossless patch removal for OAN's gating task")
     print(f"  measured here (train)      : {per_split['train']['empty_rate']:.3f}")
     print(f"  measured here (val)        : {per_split['val']['empty_rate']:.3f}")
     print(f"  OAN's own stated figure    : {OAN_STATED_INVALID_TRAIN:.3f} (training, 'approximately')")
-    print(f"  band carried forward       : {band[0]:.3f} - {band[1]:.3f}")
+    print(f"  band (our measurements)    : {band[0]:.3f} - {band[1]:.3f}")
     print()
 
     print("OAN Table 9 -- recall against patches removed, on their data:")
@@ -215,15 +218,17 @@ def main() -> int:
     g2_removed = 1.0 - OAN_GAOFEN2["activated"]
     print(f"\n  Gaofen-2: {100*g2_removed:.0f}% of patches skipped but only "
           f"{100*g2_saved:.1f}% of time saved ({g2_saved/g2_removed:.2f}x)")
-    print("  The same FLOPs-to-latency discount this repo measures appears in their numbers.")
+    print("  OAN's head taps the last backbone stage, so the backbone runs on every patch and only")
+    print("  the neck and heads are skipped. Time saved / patches removed is then at most the time")
+    print("  share of the skipped stages: about 0.69 for their detectors on DOTA, 0.48 on Gaofen-2.")
 
     print("\nThree published systems, three sparsity regimes:")
     print(f"  {'system':<18}{'gating task':<44}{'skips':>8}{'implied p+':>12}")
     for r in PUBLISHED_REGIMES:
         ip = f"{r['implied_p_plus']:.2f}" if r["implied_p_plus"] is not None else "not stated"
         print(f"  {r['system']:<18}{r['gating_task'][:43]:<44}{r['stated_skip_rate']:>7.0%}{ip:>12}")
-    print("  Reported skip rates span 35-99% and each sits at its own 1 - p+.")
-    print("  What reads as a difference between methods is a difference between datasets.")
+    print("  Reported skip rates span 35-99 %. Only OAN's sparsity can be measured; for the other")
+    print("  two the stated skip rates are consistent with sparse imagery but cannot be checked.")
 
     print("\nWhat prior work reports:")
     cols = ["flops", "fps", "wallclock", "operating_point_sweep", "calibration", "zero_shot_transfer"]
@@ -248,6 +253,8 @@ def main() -> int:
             "recall_leaves_995_at_removal": crossing,
             "operating_point_removal": removed,
             "compute_to_wallclock_ratio": mean_saved / removed,
+            "ratio_reading": "upper-bounded by the time share of the stages a rejected patch skips "
+                             "(neck and heads); the backbone runs on every patch",
             "gaofen2": {
                 **OAN_GAOFEN2,
                 "patches_skipped": g2_removed,
@@ -261,9 +268,11 @@ def main() -> int:
             "GFLOPs plus separately measured wall-clock on a Quadro RTX 8000. The "
             "two are compared only after converting FPS gain to fraction of time saved.",
             "The empty-tile rate is measured on DOTA-1.5 train/val with this repo's "
-            "tiler. OAN reports ~39 % invalid patches in training without stating the "
-            "split or the annotation-validity rule, so a band is carried rather than "
-            "a point estimate.",
+            "tiler; OAN gates DOTA-1.0, whose narrower annotation scope (no container "
+            "crane, no instances under ~10 px) raises the rate by under 1 pp "
+            "(reports/r1/prior_work/dota10_empty_rate.json). OAN reports ~39 % invalid "
+            "patches in training without stating the split or the validity rule; that "
+            "figure is reported beside our band, not merged into it.",
             "DOTA's test split has no public labels and is excluded from every rate.",
             "Skip rates for R2-CNN and Plastiras et al. are quoted from their papers; "
             "their empty-patch rates cannot be measured from public data, so the "

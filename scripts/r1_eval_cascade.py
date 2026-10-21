@@ -286,6 +286,7 @@ def run_task(preset: str, task: str, cache_path: str, det_key: str, model: str, 
         return cal_scores[sel["gi"]][sel["ci"]][fitted_on] >= sel["threshold"]
 
     out = {"preset": preset, "task": task, "cache": cache_path, "detector_gflops": det_g,
+           "fused_cost": dict(FUSED) if model == "fused" else None,
            "cost_model": model, "budget_pp": budget * 100, "selection_metric": SEL["metric"][0],
            "n_quantiles": n_quantiles,
            "classes": classes, "gates": {g: {"scores": gates[g][0], "gflops": gates[g][1]} for g in names},
@@ -445,8 +446,15 @@ def main() -> int:
     p.add_argument("--out-name", default=None, help="output file stem (default: task)")
     p.add_argument("--det-gflops", type=float, default=None,
                    help="override the detector's GFLOPs per tile (e.g. a reduced input size)")
+    p.add_argument("--fused-prefix", type=float, default=None,
+                   help="fused cost model: GFLOPs of the backbone prefix up to the tap (default layer 10)")
+    p.add_argument("--fused-head", type=float, default=None, help="fused cost model: GFLOPs of the gate head")
     args = p.parse_args()
     SEL["metric"] = METRICS[args.metric]
+    if args.fused_prefix is not None:
+        FUSED["prefix"] = args.fused_prefix
+    if args.fused_head is not None:
+        FUSED["head"] = args.fused_head
     cfg = dict(PRESETS[args.preset])
     if args.cache:
         cfg["cache"] = args.cache

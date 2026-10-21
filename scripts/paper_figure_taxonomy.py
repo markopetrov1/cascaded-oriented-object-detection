@@ -35,7 +35,8 @@ COLUMNS = [
 ROWS = [
     ("Plastiras et al.\nICDSC 2018", [NO, YES, YES, PARTIAL, NO, NO, NO]),
     ("R$^2$-CNN\nTGRS 2019", [NO, YES, YES, YES, NO, NO, NO]),
-    ("OAN\nSci. China 2023", [NO, NO, YES, YES, NO, NO, NO]),
+    # FPS is wall-clock throughput, so OAN does report wall-clock.
+    ("OAN\nSci. China 2023", [NO, YES, YES, YES, NO, NO, NO]),
     ("This work", [YES, YES, YES, YES, YES, YES, YES]),
 ]
 
