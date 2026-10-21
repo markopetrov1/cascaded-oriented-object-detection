@@ -3,8 +3,9 @@
 
 The detector is run once over every tile (e.g. via ``ultralytics yolo predict``)
 and the per-tile max-objectness becomes the soft target. We then train any
-gate backbone with MSE on the soft target — optionally mixed with the binary
-hard label.
+gate backbone with cross-entropy against the soft target, optionally mixed with
+the binary hard label (``--soft-loss mse`` reproduces the first submission's
+squared error on the sigmoid, which saturates).
 
 Usage::
 
@@ -82,8 +83,6 @@ def main() -> int:
     val_ds = GateDataset(cfg["data_root"], cfg["val_split"], image_size=cfg.get("image_size", 256), augment=False)
 
     detector_scores = _load_detector_scores(Path(args.detector_runs))
-    soft_targets_train = soft_target_from_detector(detector_scores, [tid for _, _, tid in zip(train_ds.items, train_ds.items, [it[0].stem for it in train_ds.items])])
-    # The triple-zip above is awkward; collapse to a clean loop:
     soft_targets_train = soft_target_from_detector(detector_scores, [it[0].stem for it in train_ds.items])
 
     sampler = make_balanced_sampler(train_ds.labels, cfg.get("pos_neg_ratio", 1.0 / 3.0)) if cfg.get("sampler") == "balanced" else None
