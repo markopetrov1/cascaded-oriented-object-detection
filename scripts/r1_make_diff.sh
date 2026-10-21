@@ -2,7 +2,7 @@
 # Highlighted-changes PDF for the resubmission (WP12).
 # latexdiff marks every addition in a unique near-black colour (RGB 0,0,3), which
 # survives math, tables and captions where soul's \hl breaks; deletions are not
-# printed. scripts/r1_highlight_pdf.py then puts a yellow highlight annotation
+# printed, and new figures get a yellow frame. scripts/r1_highlight_pdf.py then puts a yellow highlight annotation
 # over exactly the glyphs drawn in that colour. Output: paper/r1_highlighted.pdf.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -12,6 +12,7 @@ mkdir -p $W
 cat > $W/preamble.tex <<'TEX'
 %DIF PREAMBLE: additions in colour RGB(0,0,3), highlighted in yellow afterwards; deletions omitted
 \RequirePackage{xcolor}
+\RequirePackage{array}
 \definecolor{difadd}{RGB}{0,0,3}
 \providecommand{\DIFadd}[1]{{\protect\color{difadd}#1}}
 \providecommand{\DIFdel}[1]{}
@@ -27,9 +28,16 @@ cat > $W/preamble.tex <<'TEX'
 \providecommand{\DIFaddendFL}{}
 \providecommand{\DIFdelbeginFL}{}
 \providecommand{\DIFdelendFL}{}
+% every figure was regenerated: frame the new graphics in yellow (latexdiff's default is a blue box)
+\providecommand{\DIFaddincludegraphics}[2][]{{\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{2pt}%
+  \fcolorbox{yellow}{white}{\DIFOincludegraphics[#1]{#2}}}}
 %DIF END PREAMBLE
 TEX
-latexdiff --flatten --math-markup=whole --graphics-markup=none --preamble=$W/preamble.tex \
+# Tables are compared as whole units (every table was regenerated, so a cell-by-cell diff of
+# old against new tables is meaningless and breaks the tabular syntax); the new tables are
+# printed intact and every cell is coloured as an addition below.
+latexdiff --flatten --math-markup=whole --graphics-markup=new-only --preamble=$W/preamble.tex \
+    --config="PICTUREENV=(?:picture|DIFnomarkup|tabular)[\w\d*@]*" \
     paper_r0_submitted/main.tex paper/main.tex > $W/r1_highlighted.tex 2> $W/latexdiff.log
 # latexdiff wraps \cmidrule's arguments in markup, which booktabs cannot parse; unwrap them.
 python3 - "$W/r1_highlighted.tex" <<'PY'
@@ -38,6 +46,10 @@ p = sys.argv[1]
 t = open(p).read()
 t = re.sub(r"\\cmidrule\\DIFadd(?:FL)?\{(\([a-z]+\))\}\{\\DIFadd(?:FL)?\{([0-9-]+)\}\}", r"\\cmidrule\1{\2}", t)
 t = re.sub(r"\\cmidrule\\DIFadd(?:FL)?\{\{([0-9-]+)\}\}", r"\\cmidrule{\1}", t)
+# colour every cell of the (new) tables as added text: >{\color{difadd}} before each column
+colour = lambda spec: "".join(r">{\color{difadd}}" + ch if ch in "lrc" else ch for ch in spec)
+t = re.sub(r"(\\begin\{tabular\}\{)([lrc|]+)\}", lambda m: m.group(1) + colour(m.group(2)) + "}", t)
+t = re.sub(r"(\\multicolumn\{\d+\}\{)([lrc|]+)\}\{", lambda m: m.group(1) + colour(m.group(2)) + "}{", t)
 open(p, "w").write(t)
 PY
 cp $W/r1_highlighted.tex paper/r1_highlighted.tex
