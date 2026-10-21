@@ -396,7 +396,7 @@ def codesign_table() -> str:
     rows.append(f"MobileNetV3-large, soft + hard & --- & {f(h)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
     mse = prauc_of("reports/r1/distill_scores/gate_ships_mbv3large_distill_r1_val.jsonl")
     sv = load("cascade/distill/mbv3large_mse.json")
-    rows.append(f"MobileNetV3-large, MSE on sigmoid & --- & {f(mse)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
+    rows.append(f"MobileNetV3-large, squared error on sigmoid & --- & {f(mse)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
     rows.append(r"\midrule")
     rows.append(r"\multicolumn{4}{l}{\textit{Joint training with a separate OBB head, ResNet-18 trunk}} \\")
     for v, n in (("shared", "Shared backbone"), ("early_exit", "Early exit")):
