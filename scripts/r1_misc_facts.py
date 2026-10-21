@@ -8,7 +8,10 @@
   * object_sizes.json: median object size (sqrt of oriented-box area, px) and
     the share of objects marked difficult in DOTA-1.5 val, per class (F13);
   * small_vehicle_scene.json: how much of the small-vehicle loss at the
-    cross-fitted operating point comes from the single worst scene.
+    cross-fitted operating point comes from the single worst scene;
+  * dataset_facts.json: tile and scene counts, the densest tile's detection
+    count, HRSC2016 and SODA-A sizes, and how far each gate's checkpoint (chosen
+    by validation PR-AUC during training) is from its last epoch.
 
     python scripts/r1_misc_facts.py
 """
@@ -82,10 +85,34 @@ def sv_scene(cache: EvalCache) -> dict:
             "conf": 0.25, "objects": "non-difficult small vehicles"}
 
 
+def dataset_facts(cache: EvalCache) -> dict:
+    meta = [json.loads(l) for l in open(REPO / "data/processed/dota_multiclass/metadata/tiles.jsonl")]
+    hrsc = [json.loads(l) for l in open(REPO / "data/processed/hrsc2016/metadata/tiles.jsonl")]
+    soda = json.load(open(REPO / "data/processed/soda_a/metadata/summary.json"))
+    per_tile = np.bincount(cache.det_tile, minlength=len(cache.tiles))
+    gaps = []
+    for f in sorted(REPO.glob("runs/gate_*/history.json")):
+        if "distill" in f.parent.name or "smoke" in f.parent.name:
+            continue
+        pr = [r["val/pr_auc"] for r in json.load(open(f)) if r.get("val/pr_auc") is not None]
+        if pr:
+            gaps.append(max(pr) - pr[-1])
+    test = [r for r in hrsc if r.get("split") == "test"]
+    return {"dota_train_tiles": sum(r["split"] == "train" for r in meta),
+            "dota_val_tiles": sum(r["split"] == "val" for r in meta),
+            "dota_val_scenes": len({r["source_stem"] for r in meta if r["split"] == "val"}),
+            "densest_tile_detections_multiclass": int(per_tile.max()),
+            "hrsc_test_images": len(test), "hrsc_test_negatives": sum(1 for r in test if not int(r["is_positive"])),
+            "soda": soda, "gate_checkpoints": len(gaps),
+            "gate_prauc_best_minus_last_median": float(np.median(gaps)),
+            "gate_prauc_best_minus_last_max": float(np.max(gaps))}
+
+
 def main() -> int:
     cache = EvalCache.load(REPO / "runs/r1_cache/multiclass_val.npz")
     for name, fn in (("truncation_effect", lambda: truncation()), ("object_sizes", lambda: sizes(cache)),
-                     ("small_vehicle_scene", lambda: sv_scene(cache))):
+                     ("small_vehicle_scene", lambda: sv_scene(cache)),
+                     ("dataset_facts", lambda: dataset_facts(cache))):
         d = fn()
         (OUT / f"{name}.json").write_text(json.dumps(d, indent=2))
         print(name, json.dumps(d)[:300])
