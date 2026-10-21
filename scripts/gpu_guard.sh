@@ -59,16 +59,22 @@ MINE=$(timeout 10 ps -o pid=,comm= -u "$(whoami)" 2>/dev/null \
 # project's own work. Such callers export MINE_PGID with their process group so
 # the guard does not mistake their own child for somebody else's job.
 MINE_PGID="${MINE_PGID:-}"
+# Jobs of this project's revision queue are this project's work too. A queue job on
+# one card can leave a small CUDA context on the other (a DataLoader's pin-memory
+# thread initialises the default device), which made the guard call the other card
+# taken by "someone else" (2026-10-21). Their process groups are listed in the
+# queue's running/*.pid files (second field) and count as ours.
+QDIR="$(cd "$(dirname "$0")/.." && pwd)/runs/r1_queue/running"
+QUEUE_PGIDS=$(cat "$QDIR"/*.pid 2>/dev/null | awk '{print $2}' | tr '\n' '|' | sed 's/|$//')
 BUSY=0
 while IFS=, read -r pid mem uuid; do
   pid=$(echo "$pid" | tr -d ' '); uuid=$(echo "$uuid" | tr -d ' ')
   [ -n "$pid" ] || continue
   [ "$uuid" = "$UUID" ] || continue
   if [ -n "$MINE" ] && echo "$pid" | grep -qE "^($MINE)$"; then continue; fi
-  if [ -n "$MINE_PGID" ]; then
-    pgid=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')
-    [ "$pgid" = "$MINE_PGID" ] && continue
-  fi
+  pgid=$(ps -o pgid= -p "$pid" 2>/dev/null | tr -d ' ')
+  if [ -n "$MINE_PGID" ] && [ "$pgid" = "$MINE_PGID" ]; then continue; fi
+  if [ -n "$QUEUE_PGIDS" ] && echo "$pgid" | grep -qE "^($QUEUE_PGIDS)$"; then continue; fi
   read -r user cmd <<< "$(ps -o user=,comm= -p "$pid" 2>/dev/null)"
   # The system-wide ollama service and the root vLLM engine both idle at a few
   # GB and yield on demand, so neither counts as the device being taken.
