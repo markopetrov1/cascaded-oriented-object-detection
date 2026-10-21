@@ -64,27 +64,33 @@ TAP = 10
 
 
 class Timer:
-    """Accumulates CUDA-event time per stage."""
+    """Per-stage time. With sync=False it does nothing, so timed repeats carry no
+    profiling cost. With sync=True every stage is bracketed by device
+    synchronisation and wall-clock reads, which serialises the pipeline and so
+    is used only in a separate profiling pass. (CUDA events around the fused
+    prefix under-reported it in the first run, while the synchronised totals
+    agreed with the component benchmark; synchronised stages avoid the issue.)"""
 
-    def __init__(self):
-        self.events = defaultdict(list)
+    def __init__(self, sync: bool = False):
+        self.sync = sync
+        self.ms = defaultdict(float)
 
     def __call__(self, stage):
         timer = self
 
         class _Ctx:
             def __enter__(self_):
-                self_.s = torch.cuda.Event(enable_timing=True); self_.e = torch.cuda.Event(enable_timing=True)
-                self_.s.record()
+                if timer.sync:
+                    torch.cuda.synchronize(); self_.t0 = time.perf_counter()
 
             def __exit__(self_, *a):
-                self_.e.record()
-                timer.events[stage].append((self_.s, self_.e))
+                if timer.sync:
+                    torch.cuda.synchronize()
+                    timer.ms[stage] += (time.perf_counter() - self_.t0) * 1000
         return _Ctx()
 
     def totals(self) -> dict:
-        torch.cuda.synchronize()
-        return {k: sum(s.elapsed_time(e) for s, e in v) for k, v in self.events.items()}
+        return dict(self.ms)
 
 
 def to_det_input(batch_u8: torch.Tensor) -> torch.Tensor:
@@ -249,18 +255,23 @@ def main() -> int:
             for kind in ("full", "decoupled", "fused"):
                 cfg = dict(c, conf=0.25, max_det=1000, threshold=thresholds[kind])
                 pipeline(kind, scenes[:5], models[kind], cfg, dev, Timer())   # warm-up
-                totals, stages, counts = [], [], None
+                totals, counts = [], None
                 for _ in range(args.repeats):
-                    timer = Timer()
                     torch.cuda.synchronize(); t0 = time.perf_counter()
-                    counts = pipeline(kind, scenes, models[kind], cfg, dev, timer)
+                    counts = pipeline(kind, scenes, models[kind], cfg, dev, Timer())
                     torch.cuda.synchronize()
                     totals.append((time.perf_counter() - t0) * 1000)
-                    stages.append(timer.totals())
                 med = statistics.median(totals)
-                st = {k: statistics.median(s[k] for s in stages) for k in stages[0]}
+                prof = Timer(sync=True)                 # one separate, serialised profiling pass
+                torch.cuda.synchronize(); t0 = time.perf_counter()
+                pipeline(kind, scenes, models[kind], cfg, dev, prof)
+                torch.cuda.synchronize()
+                prof_total = (time.perf_counter() - t0) * 1000
+                st = prof.totals()
+                st["unattributed"] = prof_total - sum(st.values())
                 out["runs"][f"{cname}/{kind}"] = dict(counts, total_ms=med, totals_ms=totals,
                                                       ms_per_tile=med / counts["n_tiles"], stage_ms=st,
+                                                      profiled_total_ms=prof_total,
                                                       accept_rate=counts["n_accepted"] / counts["n_tiles"])
                 print(f"{cname:<9} {kind:<9} accept={counts['n_accepted'] / counts['n_tiles']:.3f} "
                       f"total={med:8.0f} ms  per tile={med / counts['n_tiles']:.2f} ms  "
