@@ -24,7 +24,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 
-from figstyle import (DASHES, HATCHES, INK, INK_MUTED, MARKERS, PALETTE, TEXT_WIDTH,  # noqa: E402
+from figstyle import (COL_WIDTH, DASHES, HATCHES, INK, INK_MUTED, MARKERS, PALETTE, TEXT_WIDTH,  # noqa: E402
                       save, use_paper_style)
 
 import matplotlib.pyplot as plt  # noqa: E402
@@ -214,30 +214,49 @@ def figure_latency() -> None:
 
 
 def figure_taps() -> None:
-    runs = [load(f"cascade/tap/tap{k}.json") for k in (2, 4, 6, 8, 10)]
+    """Tap-depth study, one column: (a) saving at the held-out operating point against the tap layer,
+    with the decoupled gate and the jointly trained OAN head on the same scale; (b) the head's PR-AUC
+    and the prefix every tile pays. Seed spread drawn when the seed repeats exist."""
+    ks = [2, 4, 6, 8, 10]
+    runs = [load(f"cascade/tap/tap{k}.json") for k in ks]
     if not all(runs):
         print("tap study results missing; skipping tap figure")
         return
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(TEXT_WIDTH, 2.5))
-    ks = [2, 4, 6, 8, 10]
-    ax1.plot(ks, [100 * r["risk"]["pooled"]["saving"] for r in runs], marker="o", color=PALETTE[0],
-             label="fused head at layer $k$ (frozen trunk)")
+    seeds = [[load(f"cascade/tap/tap{k}_seed{s}.json") if (R1 / f"cascade/tap/tap{k}_seed{s}.json").exists() else None
+              for s in (1, 2)] for k in ks]
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(COL_WIDTH, 3.7), sharex=True,
+                                   gridspec_kw={"hspace": 0.35})
+    sav = np.array([100 * r["risk"]["pooled"]["saving"] for r in runs])
+    if all(all(s) for s in seeds):
+        allv = np.array([[100 * x["risk"]["pooled"]["saving"] for x in [r] + s] for r, s in zip(runs, seeds)])
+        ax1.errorbar(ks, allv.mean(1), yerr=allv.std(1, ddof=1), marker="o", color=PALETTE[0], capsize=2,
+                     label="head at layer $k$, frozen trunk (3 seeds)")
+    else:
+        ax1.plot(ks, sav, marker="o", color=PALETTE[0], label="head at layer $k$, frozen trunk")
     ind = load("cascade/indep/ship.json")
     fus = load("cascade/fused/ship.json")
     if ind:
         ax1.axhline(100 * ind["risk"]["pooled"]["saving"], color=PALETTE[2], ls="--", label="decoupled gate")
     if fus:
-        ax1.axhline(100 * fus["risk"]["pooled"]["saving"], color=PALETTE[3], ls=":", label="OAN head, joint training")
-    ax1.set_xlabel("Backbone layer $k$ of the tap"); ax1.set_ylabel("Arithmetic saved (%)")
-    ax1.set_title("(a) Saving at matched accuracy", loc="left")
-    ax1.legend(fontsize=6)
+        ax1.axhline(100 * fus["risk"]["pooled"]["saving"], color=PALETTE[3], ls=":",
+                    label="OAN head at layer 10, joint training")
+    ax1.set_ylabel("Arithmetic saved (%)")
+    ax1.set_ylim(0, 100)
+    ax1.set_title("(a) Saving at the held-out operating point", loc="left")
+    ax1.legend(fontsize=6, loc="lower left")
     pr = [r["selections"]["risk"]["all"]["select_fold_prauc"] for r in runs]
-    ax2.plot(ks, pr, marker="s", color=PALETTE[1], label="gate PR-AUC")
+    l1 = ax2.plot(ks, pr, marker="s", color=PALETTE[1], label="head PR-AUC")
+    ax2.set_ylabel("PR-AUC")
     ax2b = ax2.twinx()
-    ax2b.plot(ks, [100 * r["fused_cost"]["prefix"] / r["detector_gflops"] for r in runs], marker="^", color=INK_MUTED,
-              label="prefix share of detector")
-    ax2.set_xlabel("Backbone layer $k$ of the tap"); ax2.set_ylabel("PR-AUC"); ax2b.set_ylabel("Prefix (% of detector)")
-    ax2.set_title("(b) Gate quality and prefix cost", loc="left")
+    l2 = ax2b.plot(ks, [100 * r["fused_cost"]["prefix"] / r["detector_gflops"] for r in runs], marker="^",
+                   color=INK_MUTED, ls="--", label="prefix, % of detector")
+    ax2b.set_ylabel("Prefix (% of detector)")
+    ax2b.set_ylim(0, 100)
+    ax2b.grid(False)
+    ax2.set_xlabel("Backbone layer $k$ the head reads")
+    ax2.set_xticks(ks)
+    ax2.set_title("(b) Head quality and the prefix every tile pays", loc="left")
+    ax2.legend(l1 + l2, [l.get_label() for l in l1 + l2], fontsize=6, loc="lower right")
     save(fig, "tap_study_r1", OUT)
 
 
