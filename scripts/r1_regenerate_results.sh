@@ -29,7 +29,7 @@ scripts/r1_run_yolo11n.sh
 scripts/r1_eval_soda.sh            # SODA-A (data prepared by r1_fetch_soda_val.py, r1_prepare_soda.py, r1_soda_infer.py)
 scripts/r1_eval_codesign.sh
 scripts/r1_eval_distill.sh
-scripts/r1_eval_taps.sh 67
+scripts/r1_eval_taps.sh 67; scripts/r1_eval_taps.sh 1; scripts/r1_eval_taps.sh 2
 scripts/r1_eval_seeds.sh
 
 # 3. Object-level recall, strata, calibration ties, prior work, overlap check
