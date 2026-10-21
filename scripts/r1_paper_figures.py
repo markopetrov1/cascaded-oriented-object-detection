@@ -244,7 +244,9 @@ def figure_taps() -> None:
     ax1.set_ylim(0, 100)
     ax1.set_title("(a) Saving at the held-out operating point", loc="left")
     ax1.legend(fontsize=6, loc="lower left")
-    pr = [r["selections"]["risk"]["all"]["select_fold_prauc"] for r in runs]
+    pr_of = lambda x: x["selections"]["risk"]["all"]["select_fold_prauc"]
+    pr = ([float(np.mean([pr_of(x) for x in [r] + s])) for r, s in zip(runs, seeds)]
+          if all(all(s) for s in seeds) else [pr_of(r) for r in runs])
     l1 = ax2.plot(ks, pr, marker="s", color=PALETTE[1], label="head PR-AUC")
     ax2.set_ylabel("PR-AUC")
     ax2b = ax2.twinx()

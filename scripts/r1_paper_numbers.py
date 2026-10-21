@@ -443,27 +443,37 @@ def fused_extra() -> None:
 
 def taps() -> None:
     """Tap-depth study: OAN-style heads at backbone layers 2-10 of the frozen 50-epoch ships detector,
-    shared-backbone cost with each tap's measured prefix. Seed 67; seeds 1 and 2 give the spread."""
+    shared-backbone cost with each tap's measured prefix. Means over head seeds 67, 1 and 2 when all
+    three exist (else seed 67 alone), with the standard deviation of the saving."""
     words = {2: "Two", 4: "Four", 6: "Six", 8: "Eight", 10: "Ten"}
-    runs = {k: load(f"cascade/tap/tap{k}.json") for k in words}
+    runs = {k: [r for r in [load(f"cascade/tap/tap{k}.json")] + [load(f"cascade/tap/tap{k}_seed{s}.json")
+                            for s in (1, 2)] if r] for k in words}
+    have = all(runs.values())
+    n = min(len(v) for v in runs.values()) if have else 0
+    put("nTapSeeds", n if have else None)
+    mean = {}
+    sds = []
     for k, w in words.items():
-        d = runs[k]
-        x = d["risk"]["pooled"] if d else None
-        pc(f"saveTap{w}", x["saving"] if d else None)
-        abs_pp(f"dapTap{w}", x["delta_mAP50_coco"] if d else None)
-        num(f"accTap{w}", x["accept_rate"] if d else None, 3)
-        num(f"praucTap{w}", d["selections"]["risk"]["all"]["select_fold_prauc"] if d else None, 3)
-        seeds = [runs[k]] + [load(f"cascade/tap/tap{k}_seed{s}.json") for s in (1, 2)] if d else []
-        if seeds and all(seeds):
-            v = np.array([100 * r["risk"]["pooled"]["saving"] for r in seeds])
-            put(f"sdTap{w}", f"{v.std(ddof=1):.1f}")
+        rs = runs[k][:n] if have else []
+        m = (lambda f: float(np.mean([f(r) for r in rs]))) if rs else None
+        mean[k] = {"saving": m(lambda r: r["risk"]["pooled"]["saving"]) if rs else None,
+                   "accept": m(lambda r: r["risk"]["pooled"]["accept_rate"]) if rs else None}
+        pc(f"saveTap{w}", mean[k]["saving"])
+        abs_pp(f"dapTap{w}", m(lambda r: r["risk"]["pooled"]["delta_mAP50_coco"]) if rs else None)
+        num(f"accTap{w}", mean[k]["accept"], 3)
+        num(f"praucTap{w}", m(lambda r: r["selections"]["risk"]["all"]["select_fold_prauc"]) if rs else None, 3)
+        if len(rs) > 1:
+            sd = float(np.std([100 * r["risk"]["pooled"]["saving"] for r in rs], ddof=1))
+            sds.append(sd)
+            put(f"sdTap{w}", f"{sd:.1f}")
         else:
             put(f"sdTap{w}", None)
+    put("sdTapMax", f"{max(sds):.1f}" if len(sds) == len(words) else None)
     c = components()
-    if all(runs.values()) and c is not None:
-        best = max(words, key=lambda k: runs[k]["risk"]["pooled"]["saving"])
+    if have and c is not None:
+        best = max(words, key=lambda k: mean[k]["saving"])
         put("tapBest", best)
-        pc("saveTapBest", runs[best]["risk"]["pooled"]["saving"])
+        pc("saveTapBest", mean[best]["saving"])
         # Time saving the identity predicts for each tap from its measured prefix and head latency
         # (ships detector, batch 1 and per tile at batch 16), as idPred* does for the cascades.
         det = c["detectors"]["yolo11m_ships_p50"]
@@ -473,7 +483,7 @@ def taps() -> None:
             for k in words:
                 f = c["prefix"][str(k)]["fp32"][str(b)]
                 pi, eta = f["prefix"]["median_ms"] / b / per(b), f["head"]["median_ms"] / b / per(b)
-                pred.append((1 - pi) * (1 - runs[k]["risk"]["pooled"]["accept_rate"]) - eta)
+                pred.append((1 - pi) * (1 - mean[k]["accept"]) - eta)
             pc(f"tapTime{name}Best", max(pred), 0)
     else:
         for k in ("tapBest", "saveTapBest", "tapTimeStreamBest", "tapTimeBatchBest"):
