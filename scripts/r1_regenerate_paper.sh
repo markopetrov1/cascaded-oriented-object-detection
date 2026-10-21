@@ -13,6 +13,7 @@ $PY scripts/paper_figure_architecture.py > /dev/null
 $PY scripts/paper_figure_taxonomy.py > /dev/null
 $PY scripts/r1_paper_figures.py > /dev/null
 $PY scripts/r1_paper_numbers.py
+python3 scripts/r1_number_changes.py > /dev/null
 $PY scripts/r1_paper_tables.py > /dev/null
 paper/r1_parts/assemble.sh
 (cd paper && ./compile_paper.sh)
