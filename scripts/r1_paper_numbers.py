@@ -120,6 +120,7 @@ def costs() -> None:
     if "merge" in c:
         pc("benchSpreadMedian", c["merge"]["median_relative_difference"], 1)
         num("benchSpreadMaxFactor", 1 + c["merge"]["max_relative_difference"], 1)
+        pc("benchSpreadMax", c["merge"]["max_relative_difference"], 0)
     put("benchiters", c["protocol"]["iters"])
 
 
@@ -312,6 +313,10 @@ def hrsc() -> None:
     if d is None:
         return
     t = d["transfer"]
+    c = components()
+    if c is not None:   # the same operating point priced in batch-one latency (identity, forward costs)
+        g1 = c["gates"]["mbv3large"]["fp32"]["1"]["median_ms"] / c["detectors"]["yolo11m_ships_p50"]["fp32"]["1"]["median_ms"]
+        pc("latsaveHRSC", 1 - t["risk"]["accept_rate"] - g1, 0)
     num("fullpassHRSC", t["full_pass"]["mAP50_coco"])
     pc("posrateHRSC", t["full_pass"]["p_plus"])
     pc("ceilHRSC", 1 - t["full_pass"]["p_plus"])
