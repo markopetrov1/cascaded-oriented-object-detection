@@ -388,12 +388,15 @@ def codesign_table() -> str:
     rows = []
     for bb, n in names.items():
         b = prauc_of(f"reports/gate_scores/gate_{bb}_val.jsonl")
-        d = prauc_of(f"reports/r1/distill_scores/gate_ships_{bb}_distill_r1_val.jsonl")
+        d = prauc_of(f"reports/r1/distill_scores/gate_ships_{bb}_distill_r1b_val.jsonl")
         sv = load(f"cascade/distill/{bb}.json")
         rows.append(f"{n} & {f(b)} & {f(d)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
-    h = prauc_of("reports/r1/distill_scores/gate_ships_mbv3large_distill_hard_r1_val.jsonl")
+    h = prauc_of("reports/r1/distill_scores/gate_ships_mbv3large_distill_hard_r1b_val.jsonl")
     sv = load("cascade/distill/mbv3large_hard.json")
     rows.append(f"MobileNetV3-large, soft + hard & --- & {f(h)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
+    mse = prauc_of("reports/r1/distill_scores/gate_ships_mbv3large_distill_r1_val.jsonl")
+    sv = load("cascade/distill/mbv3large_mse.json")
+    rows.append(f"MobileNetV3-large, MSE on sigmoid & --- & {f(mse)} & {pct(sv['risk']['pooled']['saving']) if sv else QQ} \\\\")
     rows.append(r"\midrule")
     rows.append(r"\multicolumn{4}{l}{\textit{Joint training with a separate OBB head, ResNet-18 trunk}} \\")
     for v, n in (("shared", "Shared backbone"), ("early_exit", "Early exit")):
