@@ -1,6 +1,6 @@
 # Generated numbers, submission against revision
 
-Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (740 macros), written by `scripts/r1_number_changes.py`.
+Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (744 macros), written by `scripts/r1_number_changes.py`.
 
 The revision changed the protocol behind most numbers: predictions at confidence 0.001 instead of 0.25, image-level AP after merging tiles, a 101-point AP budget applied on held-out scenes (two-fold cross-fitting), the shared-backbone cost for fused gates, and one timing protocol. A macro that kept its name may therefore measure something slightly different; the changelog gives the reason for each change.
 
@@ -95,7 +95,7 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `praucOANjoint` | 0.946 |
 | `praucIndepMatched` | 0.885 |
 
-## Added (693)
+## Added (697)
 
 | Macro | Revision |
 |---|---|
@@ -792,3 +792,7 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `gateFreeIndepMean` | 83.2 |
 | `saveGapMin` | 43.5 |
 | `saveGapMax` | 44.9 |
+| `objSizeShipWorst` | 4.0 |
+| `objSizeShipWorstBucket` | between $64$ and $128$ |
+| `objSizePlaneSmall` | 11.0 |
+| `objSizePlaneSmallN` | 326 |
