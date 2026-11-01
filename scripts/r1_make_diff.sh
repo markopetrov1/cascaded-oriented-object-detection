@@ -7,15 +7,24 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-W=paper/build_diff
+# SHOW_DELETIONS=1 also prints deleted running text in red strikethrough (deleted table and
+# figure content stays omitted) and writes paper/r1_highlighted_with_deletions.pdf instead.
+SHOW_DELETIONS=${SHOW_DELETIONS:-0}
+if [ "$SHOW_DELETIONS" = 1 ]; then
+  W=paper/build_diff_del; OUT=paper/r1_highlighted_with_deletions.pdf
+  DEL='\RequirePackage[normalem]{ulem}\providecommand{\DIFdel}[1]{{\protect\color{red}\sout{#1}}}'
+else
+  W=paper/build_diff; OUT=paper/r1_highlighted.pdf
+  DEL='\providecommand{\DIFdel}[1]{}'
+fi
 mkdir -p $W
 cat > $W/preamble.tex <<'TEX'
-%DIF PREAMBLE: additions in colour RGB(0,0,3), highlighted in yellow afterwards; deletions omitted
+%DIF PREAMBLE: additions in colour RGB(0,0,3), highlighted in yellow afterwards
 \RequirePackage{xcolor}
 \RequirePackage{array}
 \definecolor{difadd}{RGB}{0,0,3}
 \providecommand{\DIFadd}[1]{{\protect\color{difadd}#1}}
-\providecommand{\DIFdel}[1]{}
+%DIFDELDEF%
 \providecommand{\DIFaddbegin}{}
 \providecommand{\DIFaddend}{}
 \providecommand{\DIFdelbegin}{}
@@ -23,7 +32,7 @@ cat > $W/preamble.tex <<'TEX'
 \providecommand{\DIFmodbegin}{}
 \providecommand{\DIFmodend}{}
 \providecommand{\DIFaddFL}[1]{\DIFadd{#1}}
-\providecommand{\DIFdelFL}[1]{\DIFdel{#1}}
+\providecommand{\DIFdelFL}[1]{}
 \providecommand{\DIFaddbeginFL}{}
 \providecommand{\DIFaddendFL}{}
 \providecommand{\DIFdelbeginFL}{}
@@ -33,6 +42,12 @@ cat > $W/preamble.tex <<'TEX'
   \fcolorbox{yellow}{white}{\DIFOincludegraphics[#1]{#2}}}}
 %DIF END PREAMBLE
 TEX
+python3 - "$W/preamble.tex" "$DEL" <<'PY'
+import sys
+p, d = sys.argv[1], sys.argv[2]
+text = open(p).read()
+open(p, "w").write(text.replace("%DIFDELDEF%", d))
+PY
 # Tables are compared as whole units (every table was regenerated, so a cell-by-cell diff of
 # old against new tables is meaningless and breaks the tabular syntax); the new tables are
 # printed intact and every cell is coloured as an addition below.
@@ -57,9 +72,24 @@ t = re.sub(r"(\\begin\{tabular\}\{)([lrc|]+)\}", lambda m: m.group(1) + colour(m
 t = re.sub(r"(\\multicolumn\{\d+\}\{)([lrc|]+)\}\{", lambda m: m.group(1) + colour(m.group(2)) + "}{", t)
 open(p, "w").write(t)
 PY
+if [ "$SHOW_DELETIONS" = 1 ]; then
+# deleted text still uses the first version's number macros; define the ones that no longer
+# exist with their old values, so struck-through numbers read as they were submitted
+python3 - "$W/r1_highlighted.tex" paper_r0_submitted/generated_numbers.tex paper/generated_numbers.tex <<'PY'
+import re, sys
+p, old, new = sys.argv[1:]
+pat = re.compile(r"\\newcommand\{\\(\w+)\}\{(.*)\}\s*$")
+have = {m.group(1) for m in map(pat.match, open(new)) if m}
+defs = [f"\\providecommand{{\\{m.group(1)}}}{{{m.group(2)}}}" for m in map(pat.match, open(old))
+        if m and m.group(1) not in have]
+t = open(p).read()
+i = t.index("\\begin{document}")
+open(p, "w").write(t[:i] + "\n".join(defs) + "\n" + t[i:])
+PY
+fi
 cp $W/r1_highlighted.tex paper/r1_highlighted.tex
 cd paper
-latexmk -pdf -interaction=nonstopmode -outdir=build_diff r1_highlighted.tex > build_diff/latexmk.log 2>&1 || true
+latexmk -pdf -interaction=nonstopmode -outdir=$(basename $W) r1_highlighted.tex > $(basename $W)/latexmk.log 2>&1 || true
 rm -f r1_highlighted.tex
 cd ..
-.venv/bin/python scripts/r1_highlight_pdf.py paper/build_diff/r1_highlighted.pdf paper/r1_highlighted.pdf
+.venv/bin/python scripts/r1_highlight_pdf.py $W/r1_highlighted.pdf $OUT

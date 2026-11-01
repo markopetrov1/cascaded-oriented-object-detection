@@ -104,7 +104,7 @@ def main() -> int:
         boxstyle="round,pad=0.012,rounding_size=0.02",
         facecolor="#f4f2ec", edgecolor="#ddd9cf", linewidth=0.7, zorder=2))
     ax.text(0.665, 0.125,
-            r"$C = N\,G_g + N\,a(\tau)\,G_f$,    "
+            r"$C = N\,G_\mathrm{g} + N\,a(\tau)\,G_\mathrm{f}$,    "
             r"$a(\tau)=p_+\mathrm{TPR}(\tau)+(1-p_+)\mathrm{FPR}(\tau)$",
             ha="center", va="center", fontsize=6.6, color=INK, zorder=4)
     # matplotlib's mathtext has no \underbrace, so the three terms are named
@@ -114,7 +114,7 @@ def main() -> int:
     terms = [
         (r"$(1-p_+)(1-\mathrm{FPR})$", "empty tiles skipped", PALETTE[2]),
         (r"$+\;p_+(1-\mathrm{TPR})$", "detections dropped", PALETTE[1]),
-        (r"$-\;G_g/G_f$", "gate overhead", PALETTE[3]),
+        (r"$-\;G_\mathrm{g}/G_\mathrm{f}$", "gate overhead", PALETTE[3]),
     ]
     x = 0.445
     for expr, name, colour in terms:
