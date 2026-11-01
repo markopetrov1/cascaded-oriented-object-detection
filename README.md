@@ -26,18 +26,47 @@ order to check it. The generators below write their output into a local `paper/`
 directory, creating it if necessary. Training logs are not tracked either; they
 are large and machine specific.
 
-## Reproducing the paper without a GPU
+## Reproducing the revised manuscript without a GPU
 
-Everything the manuscript claims is derived from `reports/`, which is committed.
-If you only want to check that the paper's numbers follow from the released
-results, no GPU and no dataset are needed:
+The manuscript was revised after the first round of review. The revision
+re-evaluated everything under a stricter protocol: detector outputs cached at
+confidence 0.001 instead of the library default of 0.25; accuracy measured per
+scene after merging the accepted tiles, with the accuracy budget on 101-point
+AP@0.5; operating points chosen on one half of the DOTA validation scenes and
+reported on the other (`configs/splits/r1_val_2fold.yaml`); fused gates costed
+with the backbone they read; and one timing protocol for every latency. Its
+results are in `reports/r1/`, which is committed, and three generators turn them
+into the revised manuscript's numbers, tables and figures:
+
+```bash
+python scripts/prior_work_prediction.py  # input to the envelope figure
+python scripts/r1_paper_numbers.py       # -> paper/generated_numbers.tex
+python scripts/r1_paper_tables.py        # -> paper/generated_table_*.tex
+python scripts/r1_paper_figures.py       # -> reports/r1/figures/
+```
+
+From a clean checkout these reproduce every number, every table and the data
+figures of the revised manuscript byte for byte, without the datasets or a GPU.
+`scripts/r1_regenerate_results.sh` lists the evaluation chain that produced
+`reports/r1/` from the cached detector outputs, which does need the datasets.
+The revision also fixed two defects in the first version's code: the
+joint-training loss overwrote the gate's term (`src/codesign.py`), and
+distillation read its soft targets from the wrong split and matched them with a
+squared error whose gradient vanishes (`scripts/train_distill.py`, now
+cross-entropy by default).
+
+## Reproducing the first submission without a GPU
+
+The first submission was generated from the top level of `reports/`, which is
+also committed. To check that its numbers follow from those results, no GPU and
+no dataset are needed:
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 python scripts/savings_model.py          # the cost identity, checked against every run
-python scripts/sparsity_ceiling.py       # the envelope, 19 gating tasks
+python scripts/sparsity_ceiling.py       # the envelope, as first submitted
 python scripts/prior_work_prediction.py  # published speedups read through the envelope
 python scripts/flops_latency_gap.py      # arithmetic against wall-clock
 python scripts/paper_numbers.py          # -> paper/generated_numbers.tex
@@ -50,11 +79,11 @@ Running that chain twice reproduces every generated artifact byte for byte, whic
 is the property the manuscript relies on when it claims its numbers are not typed
 by hand.
 
-`savings_model.py` is the one to run first. It recovers every term of the cost
-identity for all measured operating points and checks the result against the
-recorded compute. It prints the worst residual, which should be at
-floating-point level. If it is not, something upstream is wrong and nothing
-derived from it should be trusted.
+`savings_model.py` recovers every term of the cost identity for all measured
+operating points and checks the result against the recorded compute. That is a
+check of the bookkeeping, not evidence for the identity: the identity holds by
+definition, and the revised manuscript tests it instead against measured
+end-to-end time.
 
 ## Reproducing the experiments from scratch
 
@@ -151,6 +180,14 @@ Ultralytics resolves image paths before deriving label paths, so a directory
 symlink from one dataset's `images/` to another's will silently pull labels from
 the symlink target. Use hard links, which share the inode and cannot be
 redirected.
+
+The dataset configs in `configs/datasets/` carry a `<REPO_ROOT>` placeholder.
+Training scripts that read them directly must substitute the checkout path first;
+`scripts/r1_train_seed.py` writes a resolved copy for this reason.
+
+On a machine with several GPUs, timing on any card other than the default needs
+`torch.cuda.set_device`. Otherwise CUDA events and `torch.cuda.synchronize()`
+refer to the default card, and the measured times are wrong without any error.
 
 ## Citation
 

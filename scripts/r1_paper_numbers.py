@@ -722,6 +722,7 @@ def main() -> int:
             raise SystemExit(f"duplicate macro {name}")
         seen.add(name)
         lines.append(f"\\newcommand{{\\{name}}}{{{val}}}" + (f"  % {note}" if note else ""))
+    OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text("\n".join(lines) + "\n")
     print(f"wrote {OUT} ({len(MACROS)} macros)")
     if MISSING:

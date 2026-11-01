@@ -436,6 +436,7 @@ def main() -> int:
            "fusing": fusing_table, "ece": ece_table, "strata": strata_table, "detsize": detsize_table,
            "codesign": codesign_table}
     for name, fn in out.items():
+        (REPO / "paper").mkdir(exist_ok=True)
         (REPO / f"paper/generated_table_{name}.tex").write_text(head + fn().replace(head, ""))
     print("wrote", ", ".join(f"paper/generated_table_{n}.tex" for n in out))
     return 0
