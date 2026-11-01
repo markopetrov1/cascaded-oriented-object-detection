@@ -1,0 +1,21 @@
+{
+  "soda_scenes": 576,
+  "dota_scenes": 1869,
+  "threshold_bits": 10,
+  "min_distance_per_soda_scene_median": 18.0,
+  "min_distance_overall": 8,
+  "pairs": [
+    [
+      "01355",
+      "train/P2122",
+      10,
+      30
+    ],
+    [
+      "02190",
+      "val/P0377",
+      8,
+      34
+    ]
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "detector": "runs/obb/runs/baseline_yolo11m_dota_ships_obb_p50",
+  "level": "tile",
+  "metric": "AP@0.5, 101-point interpolation",
+  "ap50_coco_conf025": 0.8627724766764648,
+  "ap50_voc07_conf025": 0.8123854308535332,
+  "n_detections_conf025": 22178,
+  "min_score_conf025": 0.250507,
+  "ap50_coco_conf0001": 0.9431031859095386,
+  "ap50_voc07_conf0001": 0.899561811189307,
+  "n_detections_conf0001": 60038,
+  "min_score_conf0001": 0.001
+}

@@ -1,0 +1,102 @@
+{
+  "all": {
+    "difficult_share": 0.5111334722921009,
+    "n": 69565
+  },
+  "plane": {
+    "n": 2550,
+    "median_all": 66.46427345794976,
+    "median_nondiff": 68.21290200541243,
+    "difficult_share": 0.03176470588235294
+  },
+  "ship": {
+    "n": 10765,
+    "median_all": 24.08318915758459,
+    "median_nondiff": 24.372115213907882,
+    "difficult_share": 0.05192754296330701
+  },
+  "storage tank": {
+    "n": 2940,
+    "median_all": 19.98749217771909,
+    "median_nondiff": 30.0,
+    "difficult_share": 0.3578231292517007
+  },
+  "baseball diamond": {
+    "n": 213,
+    "median_all": 65.04613747179766,
+    "median_nondiff": 64.9209853355816,
+    "difficult_share": 0.023474178403755867
+  },
+  "tennis court": {
+    "n": 763,
+    "median_all": 75.25955088890711,
+    "median_nondiff": 76.87164625111029,
+    "difficult_share": 0.02490170380078637
+  },
+  "basketball court": {
+    "n": 143,
+    "median_all": 75.22300180131074,
+    "median_nondiff": 75.74628703771559,
+    "difficult_share": 0.055944055944055944
+  },
+  "ground track field": {
+    "n": 145,
+    "median_all": 109.84989758757175,
+    "median_nondiff": 111.12380483046826,
+    "difficult_share": 0.08275862068965517
+  },
+  "harbor": {
+    "n": 2102,
+    "median_all": 54.68312637021107,
+    "median_nondiff": 54.49770637375485,
+    "difficult_share": 0.009039010466222646
+  },
+  "bridge": {
+    "n": 466,
+    "median_all": 26.27260888003461,
+    "median_nondiff": 27.964262908219126,
+    "difficult_share": 0.08369098712446352
+  },
+  "large vehicle": {
+    "n": 5139,
+    "median_all": 33.51119216023208,
+    "median_nondiff": 35.41186241925155,
+    "difficult_share": 0.1025491340727768
+  },
+  "small vehicle": {
+    "n": 43337,
+    "median_all": 12.144957801491119,
+    "median_nondiff": 15.524174696260024,
+    "difficult_share": 0.7625585527378452
+  },
+  "helicopter": {
+    "n": 78,
+    "median_all": 48.77271385595691,
+    "median_nondiff": 49.24428900898052,
+    "difficult_share": 0.01282051282051282
+  },
+  "roundabout": {
+    "n": 185,
+    "median_all": 38.948684188300895,
+    "median_nondiff": 41.68849214061101,
+    "difficult_share": 0.08108108108108109
+  },
+  "soccer ball field": {
+    "n": 149,
+    "median_all": 128.12493902437572,
+    "median_nondiff": 296.06249340299763,
+    "difficult_share": 0.40268456375838924
+  },
+  "swimming pool": {
+    "n": 576,
+    "median_all": 26.46695885019668,
+    "median_nondiff": 29.180472922829747,
+    "difficult_share": 0.19618055555555555
+  },
+  "container crane": {
+    "n": 14,
+    "median_all": 46.44824723515613,
+    "median_nondiff": 46.44824723515613,
+    "difficult_share": 0.0
+  }
+}

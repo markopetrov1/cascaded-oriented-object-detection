@@ -1,0 +1,30 @@
+{
+  "dota_train_tiles": 15749,
+  "dota_val_tiles": 5297,
+  "dota_val_scenes": 458,
+  "densest_tile_detections_multiclass": 5132,
+  "hrsc_test_images": 610,
+  "hrsc_test_negatives": 13,
+  "soda": {
+    "scenes": 576,
+    "tiles": 13740,
+    "tiles_with_ignore": 1541,
+    "objects": {
+      "small-vehicle": 141265,
+      "large-vehicle": 3723,
+      "storage-tank": 7700,
+      "swimming-pool": 7927,
+      "plane": 8558,
+      "windmill": 7067,
+      "container": 32926,
+      "helicopter": 264,
+      "ship": 21658
+    },
+    "p_plus_ship": 0.033035494712681364,
+    "p_plus_plane": 0.09623739650791048,
+    "p_plus_small_vehicle": 0.29871300926305433
+  },
+  "gate_checkpoints": 34,
+  "gate_prauc_best_minus_last_median": 0.0029967442446615644,
+  "gate_prauc_best_minus_last_max": 0.022719108866917637
+}

@@ -1,0 +1,223 @@
+{
+  "scenes": 60,
+  "tiles": 672,
+  "images": [
+    "P0007",
+    "P0053",
+    "P0086",
+    "P0131",
+    "P0175",
+    "P0206",
+    "P0246",
+    "P0300",
+    "P0329",
+    "P0342",
+    "P0368",
+    "P0385",
+    "P0420",
+    "P0499",
+    "P0543",
+    "P0579",
+    "P0604",
+    "P0643",
+    "P0654",
+    "P0665",
+    "P0706",
+    "P0749",
+    "P0789",
+    "P0799",
+    "P0841",
+    "P0887",
+    "P0929",
+    "P0961",
+    "P0969",
+    "P0977",
+    "P1009",
+    "P1086",
+    "P1122",
+    "P1147",
+    "P1156",
+    "P1212",
+    "P1225",
+    "P1257",
+    "P1314",
+    "P1356",
+    "P1384",
+    "P1440",
+    "P1471",
+    "P1478",
+    "P1529",
+    "P1569",
+    "P1586",
+    "P1604",
+    "P1650",
+    "P1700",
+    "P1763",
+    "P1806",
+    "P1860",
+    "P1888",
+    "P1940",
+    "P1978",
+    "P1995",
+    "P2042",
+    "P2068",
+    "P2093"
+  ],
+  "operating_points": {
+    "decoupled": {
+      "gate": "mbv3large",
+      "calibration": "identity",
+      "threshold": 0.6021317243576046,
+      "select_accept": 0.1500849537474042,
+      "select_mAP50_voc07": 0.8993679042432781,
+      "select_mAP50_coco": 0.93436245708098,
+      "select_full_mAP50_voc07": 0.8997504030817459,
+      "select_full_mAP50_coco": 0.9518789209560996,
+      "select_fold_prauc": 0.8850969869336555,
+      "bootstrap_lower_bound": -0.02876889603600538,
+      "candidates_checked": 6
+    },
+    "fused": {
+      "gate": "oan_head",
+      "calibration": "identity",
+      "threshold": 0.4523642957210541,
+      "select_accept": 0.1251651878421748,
+      "select_mAP50_voc07": 0.8963410452704005,
+      "select_mAP50_coco": 0.931839368559568,
+      "select_full_mAP50_voc07": 0.8965587135540052,
+      "select_full_mAP50_coco": 0.9489004960798988,
+      "select_fold_prauc": 0.9458175325442857,
+      "bootstrap_lower_bound": -0.02968539154762939,
+      "candidates_checked": 6
+    }
+  },
+  "conf": 0.25,
+  "max_det": 1000,
+  "merge": "class-wise rotated NMS, probIoU, IoU 0.3",
+  "runs": {
+    "streaming/full": {
+      "n_tiles": 672,
+      "n_accepted": 672,
+      "merged_detections": 1860,
+      "total_ms": 21658.873351290822,
+      "totals_ms": [
+        21658.873351290822,
+        21425.75688753277,
+        22159.506470896304
+      ],
+      "ms_per_tile": 32.230466296563726,
+      "stage_ms": {
+        "transfer+preprocess": 1048.3365759849548,
+        "detector": 15839.015111923218,
+        "nms": 5058.944352209568,
+        "merge": 66.39443255588412
+      },
+      "accept_rate": 1.0
+    },
+    "streaming/decoupled": {
+      "n_tiles": 672,
+      "n_accepted": 91,
+      "merged_detections": 1800,
+      "total_ms": 9248.70171584189,
+      "totals_ms": [
+        9626.19076948613,
+        9223.171134479344,
+        9248.70171584189
+      ],
+      "ms_per_tile": 13.762948981907574,
+      "stage_ms": {
+        "transfer+preprocess": 1002.7127991840243,
+        "gate": 5227.991196632385,
+        "merge": 40.77638388983905,
+        "detector": 1644.0105419158936,
+        "nms": 1193.6309752464294
+      },
+      "accept_rate": 0.13541666666666666,
+      "time_saved_vs_full": 0.5729832495977596
+    },
+    "streaming/fused": {
+      "n_tiles": 672,
+      "n_accepted": 99,
+      "merged_detections": 1861,
+      "total_ms": 14165.15826806426,
+      "totals_ms": [
+        14952.491699717939,
+        14165.15826806426,
+        14082.18933455646
+      ],
+      "ms_per_tile": 21.079104565571818,
+      "stage_ms": {
+        "transfer+preprocess": 971.158976495266,
+        "backbone": 5881.703075408936,
+        "gate": 327.27663990855217,
+        "merge": 56.04521557316184,
+        "neck+head": 1249.4811820983887,
+        "nms": 557.9405136108398
+      },
+      "accept_rate": 0.14732142857142858,
+      "time_saved_vs_full": 0.34598822208727453
+    },
+    "batched/full": {
+      "n_tiles": 672,
+      "n_accepted": 672,
+      "merged_detections": 1860,
+      "total_ms": 17877.576857805252,
+      "totals_ms": [
+        25533.67595002055,
+        17396.21150959283,
+        17877.576857805252
+      ],
+      "ms_per_tile": 26.603536990781624,
+      "stage_ms": {
+        "transfer+preprocess": 1058.3730625510216,
+        "detector": 12599.764326095581,
+        "nms": 3876.2567672133446,
+        "merge": 60.613375747576356
+      },
+      "accept_rate": 1.0
+    },
+    "batched/decoupled": {
+      "n_tiles": 672,
+      "n_accepted": 91,
+      "merged_detections": 1800,
+      "total_ms": 4067.183831706643,
+      "totals_ms": [
+        30732.529672794044,
+        4052.499733865261,
+        4067.183831706643
+      ],
+      "ms_per_tile": 6.0523568924206,
+      "stage_ms": {
+        "transfer+preprocess": 1129.7379222810268,
+        "gate": 525.2066559791565,
+        "merge": 39.40220819786191,
+        "detector": 2093.470838546753,
+        "nms": 251.2941793501377
+      },
+      "accept_rate": 0.13541666666666666,
+      "time_saved_vs_full": 0.7724980368393196
+    },
+    "batched/fused": {
+      "n_tiles": 672,
+      "n_accepted": 99,
+      "merged_detections": 1861,
+      "total_ms": 11836.596382781863,
+      "totals_ms": [
+        12443.371668457985,
+        11601.245393045247,
+        11836.596382781863
+      ],
+      "ms_per_tile": 17.61398271247301,
+      "stage_ms": {
+        "transfer+preprocess": 1169.2198718190193,
+        "backbone": 874.9500818252563,
+        "gate": 53.326624006032944,
+        "merge": 47.07807996124029,
+        "neck+head": 1096.606969833374,
+        "nms": 313.50137591362
+      },
+      "accept_rate": 0.14732142857142858,
+      "time_saved_vs_full": 0.33790823684172444
+    }
+  }
+}

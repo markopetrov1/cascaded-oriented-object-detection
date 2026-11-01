@@ -1,0 +1,11 @@
+{
+  "scene": "P2789",
+  "ships": 53,
+  "tiles": 36,
+  "skipped": 16,
+  "positive_tiles": 25,
+  "rejected_positive_tiles": 5,
+  "overall_rejected_positive_share": 0.23127035830618892,
+  "scene_rejected_positive_share": 0.2,
+  "masks": "reports/r1/cascade/sweep/ship_masks.npz"
+}

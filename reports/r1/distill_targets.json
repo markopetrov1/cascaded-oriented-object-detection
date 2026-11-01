@@ -1,0 +1,10 @@
+{
+  "predictions": "runs/obb/runs/baseline_yolo11m_dota_ships_obb_p50/predict_train_c001",
+  "n_tiles": 15749,
+  "n_positive": 2672,
+  "prauc_vs_labels": 0.9961650792487114,
+  "mean_positive": 0.836219847202301,
+  "mean_empty": 0.00927506573498249,
+  "share_empty_above_half": 0.004205857612602279,
+  "share_positive_below_half": 0.025823353293413173
+}

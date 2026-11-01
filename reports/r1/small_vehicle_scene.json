@@ -1,0 +1,11 @@
+{
+  "scene": "P2754",
+  "lost_in_scene": 610,
+  "lost_total": 775,
+  "found_by_full_in_scene": 749,
+  "tiles": 20,
+  "positive_tiles": 20,
+  "accepted_tiles": 4,
+  "conf": 0.25,
+  "objects": "non-difficult small vehicles"
+}

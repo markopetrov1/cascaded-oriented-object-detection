@@ -1,0 +1,958 @@
+{
+  "task": "ship",
+  "cache": "runs/r1_cache/multiclass_val.npz",
+  "budget_pp": 3.0,
+  "note": "maps fitted on one fold and applied to the other; oracle = best saving within budget over every reachable threshold on the report fold, for sizing the effect only",
+  "tie_stats": {
+    "mbv3small": {
+      "temperature": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2016,
+          "distinct_calibrated": 1924,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 100,
+          "share_tiles_in_ties_pp": 3.7792894935752077,
+          "max_accept_gap_pp": 0.18896447467875999,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1976,
+          "distinct_calibrated": 1885,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 99,
+          "share_tiles_in_ties_pp": 3.7344398340248963,
+          "max_accept_gap_pp": 0.18860807242550015,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        }
+      },
+      "platt": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2016,
+          "distinct_calibrated": 1924,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 100,
+          "share_tiles_in_ties_pp": 3.7792894935752077,
+          "max_accept_gap_pp": 0.18896447467875999,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1976,
+          "distinct_calibrated": 1885,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 99,
+          "share_tiles_in_ties_pp": 3.7344398340248963,
+          "max_accept_gap_pp": 0.18860807242550015,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        }
+      },
+      "isotonic": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2016,
+          "distinct_calibrated": 33,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 389,
+          "share_tiles_in_ties_pp": 99.58427815570673,
+          "max_accept_gap_pp": 11.45124716553288,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_A_on_fit_fold": {
+          "n_tiles": 2651,
+          "distinct_raw": 1976,
+          "distinct_calibrated": 22,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 498,
+          "share_tiles_in_ties_pp": 100.0
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1976,
+          "distinct_calibrated": 35,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 852,
+          "share_tiles_in_ties_pp": 99.3964541682384,
+          "max_accept_gap_pp": 3.7344398340248968,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        },
+        "fit_B_on_fit_fold": {
+          "n_tiles": 2646,
+          "distinct_raw": 2016,
+          "distinct_calibrated": 21,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 734,
+          "share_tiles_in_ties_pp": 100.0
+        }
+      }
+    },
+    "mbv3large": {
+      "temperature": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1991,
+          "distinct_calibrated": 1006,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1444,
+          "share_tiles_in_ties_pp": 54.572940287226004,
+          "max_accept_gap_pp": 0.11337868480725821,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2012,
+          "distinct_calibrated": 994,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1437,
+          "share_tiles_in_ties_pp": 54.20596001508864,
+          "max_accept_gap_pp": 0.1508864579403968,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        }
+      },
+      "platt": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1991,
+          "distinct_calibrated": 1006,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1444,
+          "share_tiles_in_ties_pp": 54.572940287226004,
+          "max_accept_gap_pp": 0.11337868480725821,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2012,
+          "distinct_calibrated": 994,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1437,
+          "share_tiles_in_ties_pp": 54.20596001508864,
+          "max_accept_gap_pp": 0.1508864579403968,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        }
+      },
+      "isotonic": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1991,
+          "distinct_calibrated": 54,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 568,
+          "share_tiles_in_ties_pp": 98.52607709750566,
+          "max_accept_gap_pp": 7.105064247921389,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_A_on_fit_fold": {
+          "n_tiles": 2651,
+          "distinct_raw": 2012,
+          "distinct_calibrated": 32,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 564,
+          "share_tiles_in_ties_pp": 99.5096190116937
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2012,
+          "distinct_calibrated": 42,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1219,
+          "share_tiles_in_ties_pp": 99.245567710298,
+          "max_accept_gap_pp": 7.129385137683891,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        },
+        "fit_B_on_fit_fold": {
+          "n_tiles": 2646,
+          "distinct_raw": 1991,
+          "distinct_calibrated": 24,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1202,
+          "share_tiles_in_ties_pp": 100.0
+        }
+      }
+    },
+    "resnet18": {
+      "temperature": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1765,
+          "distinct_calibrated": 1748,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 19,
+          "share_tiles_in_ties_pp": 0.7180650037792895,
+          "max_accept_gap_pp": 0.18896447467875999,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1777,
+          "distinct_calibrated": 1749,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 31,
+          "share_tiles_in_ties_pp": 1.169370049038099,
+          "max_accept_gap_pp": 0.18860807242550015,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        }
+      },
+      "platt": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1765,
+          "distinct_calibrated": 1748,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 19,
+          "share_tiles_in_ties_pp": 0.7180650037792895,
+          "max_accept_gap_pp": 0.18896447467875999,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1777,
+          "distinct_calibrated": 1749,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 31,
+          "share_tiles_in_ties_pp": 1.169370049038099,
+          "max_accept_gap_pp": 0.18860807242550015,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        }
+      },
+      "isotonic": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1765,
+          "distinct_calibrated": 51,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 680,
+          "share_tiles_in_ties_pp": 98.86621315192744,
+          "max_accept_gap_pp": 11.148904006046866,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_A_on_fit_fold": {
+          "n_tiles": 2651,
+          "distinct_raw": 1777,
+          "distinct_calibrated": 26,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 754,
+          "share_tiles_in_ties_pp": 100.0
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1777,
+          "distinct_calibrated": 39,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 742,
+          "share_tiles_in_ties_pp": 99.3587325537533,
+          "max_accept_gap_pp": 6.789890607317995,
+          "max_accept_gap_raw_pp": 0.18860807242550015
+        },
+        "fit_B_on_fit_fold": {
+          "n_tiles": 2646,
+          "distinct_raw": 1765,
+          "distinct_calibrated": 23,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 775,
+          "share_tiles_in_ties_pp": 100.0
+        }
+      }
+    },
+    "resnet50": {
+      "temperature": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2026,
+          "distinct_calibrated": 2026,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.1511715797430091,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2021,
+          "distinct_calibrated": 2021,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 6,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.15088645794040234,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        }
+      },
+      "platt": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2026,
+          "distinct_calibrated": 2026,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.1511715797430091,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2021,
+          "distinct_calibrated": 2021,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 6,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.15088645794040234,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        }
+      },
+      "isotonic": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2026,
+          "distinct_calibrated": 43,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 438,
+          "share_tiles_in_ties_pp": 99.31972789115646,
+          "max_accept_gap_pp": 8.541194255479967,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_A_on_fit_fold": {
+          "n_tiles": 2651,
+          "distinct_raw": 2021,
+          "distinct_calibrated": 27,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 489,
+          "share_tiles_in_ties_pp": 100.0
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2021,
+          "distinct_calibrated": 44,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 442,
+          "share_tiles_in_ties_pp": 99.1324028668427,
+          "max_accept_gap_pp": 10.750660128253491,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        },
+        "fit_B_on_fit_fold": {
+          "n_tiles": 2646,
+          "distinct_raw": 2026,
+          "distinct_calibrated": 25,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 388,
+          "share_tiles_in_ties_pp": 100.0
+        }
+      }
+    },
+    "effb0": {
+      "temperature": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2041,
+          "distinct_calibrated": 2041,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 6,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.18896447467875999,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2011,
+          "distinct_calibrated": 2011,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.15088645794040234,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        }
+      },
+      "platt": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2041,
+          "distinct_calibrated": 2041,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 6,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.18896447467875999,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2011,
+          "distinct_calibrated": 2011,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.15088645794040234,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        }
+      },
+      "isotonic": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 2041,
+          "distinct_calibrated": 41,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 701,
+          "share_tiles_in_ties_pp": 99.28193499622071,
+          "max_accept_gap_pp": 6.462585034013604,
+          "max_accept_gap_raw_pp": 0.18896447467875999
+        },
+        "fit_A_on_fit_fold": {
+          "n_tiles": 2651,
+          "distinct_raw": 2011,
+          "distinct_calibrated": 23,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 692,
+          "share_tiles_in_ties_pp": 100.0
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 2011,
+          "distinct_calibrated": 43,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1305,
+          "share_tiles_in_ties_pp": 99.245567710298,
+          "max_accept_gap_pp": 8.185590343266691,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        },
+        "fit_B_on_fit_fold": {
+          "n_tiles": 2646,
+          "distinct_raw": 2041,
+          "distinct_calibrated": 25,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 1343,
+          "share_tiles_in_ties_pp": 100.0
+        }
+      }
+    },
+    "tiny": {
+      "temperature": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1885,
+          "distinct_calibrated": 1885,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.1511715797430091,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1865,
+          "distinct_calibrated": 1865,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.15088645794040234,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        }
+      },
+      "platt": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1885,
+          "distinct_calibrated": 1885,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.1511715797430091,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1865,
+          "distinct_calibrated": 1865,
+          "inversions": 0,
+          "strictly_increasing": true,
+          "largest_tied_run": 7,
+          "share_tiles_in_ties_pp": 0.0,
+          "max_accept_gap_pp": 0.15088645794040234,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        }
+      },
+      "isotonic": {
+        "fit_A_report_B": {
+          "n_tiles": 2646,
+          "distinct_raw": 1885,
+          "distinct_calibrated": 42,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 460,
+          "share_tiles_in_ties_pp": 99.1307634164777,
+          "max_accept_gap_pp": 6.916099773242632,
+          "max_accept_gap_raw_pp": 0.1511715797430091
+        },
+        "fit_A_on_fit_fold": {
+          "n_tiles": 2651,
+          "distinct_raw": 1865,
+          "distinct_calibrated": 21,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 517,
+          "share_tiles_in_ties_pp": 100.0
+        },
+        "fit_B_report_A": {
+          "n_tiles": 2651,
+          "distinct_raw": 1865,
+          "distinct_calibrated": 55,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 498,
+          "share_tiles_in_ties_pp": 98.90607317993211,
+          "max_accept_gap_pp": 8.374198415692192,
+          "max_accept_gap_raw_pp": 0.15088645794040234
+        },
+        "fit_B_on_fit_fold": {
+          "n_tiles": 2646,
+          "distinct_raw": 1885,
+          "distinct_calibrated": 31,
+          "inversions": 0,
+          "strictly_increasing": false,
+          "largest_tied_run": 311,
+          "share_tiles_in_ties_pp": 100.0
+        }
+      }
+    }
+  },
+  "oracle_best_saving": {
+    "mbv3small": {
+      "identity": {
+        "A": {
+          "accept": 0.14070162202942285,
+          "threshold": 0.6597340106964111,
+          "saving": 0.8585143197634859,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1220
+        },
+        "B": {
+          "accept": 0.10128495842781557,
+          "threshold": 0.9362850189208984,
+          "saving": 0.8979309833650931,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1213
+        }
+      },
+      "temperature": {
+        "A": {
+          "accept": 0.14070162202942285,
+          "threshold": 0.5921307287980189,
+          "saving": 0.8585143197634859,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1220
+        },
+        "B": {
+          "accept": 0.10128495842781557,
+          "threshold": 0.7820859371619392,
+          "saving": 0.8979309833650931,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1213
+        }
+      },
+      "platt": {
+        "A": {
+          "accept": 0.14070162202942285,
+          "threshold": 0.46709805028815293,
+          "saving": 0.8585143197634859,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1220
+        },
+        "B": {
+          "accept": 0.10128495842781557,
+          "threshold": 0.6995867539148515,
+          "saving": 0.8979309833650931,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1213
+        }
+      },
+      "isotonic": {
+        "A": {
+          "accept": 0.14635986420218786,
+          "threshold": 0.5507246376811594,
+          "saving": 0.8528560775907209,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 30
+        },
+        "B": {
+          "accept": 0.12244897959183673,
+          "threshold": 0.7415730337078652,
+          "saving": 0.876766962201072,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 27
+        }
+      }
+    },
+    "mbv3large": {
+      "identity": {
+        "A": {
+          "accept": 0.11316484345529988,
+          "threshold": 0.9887554049491882,
+          "saving": 0.8837896008081524,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1245
+        },
+        "B": {
+          "accept": 0.08654572940287227,
+          "threshold": 0.9985277652740479,
+          "saving": 0.91040871486058,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1250
+        }
+      },
+      "temperature": {
+        "A": {
+          "accept": 0.11316484345529988,
+          "threshold": 0.8107239267144215,
+          "saving": 0.8837896008081524,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 979
+        },
+        "B": {
+          "accept": 0.08654572940287227,
+          "threshold": 0.8654209111205112,
+          "saving": 0.91040871486058,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 992
+        }
+      },
+      "platt": {
+        "A": {
+          "accept": 0.11316484345529988,
+          "threshold": 0.8175795149982377,
+          "saving": 0.8837896008081524,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 979
+        },
+        "B": {
+          "accept": 0.08654572940287227,
+          "threshold": 0.8480737301381563,
+          "saving": 0.91040871486058,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 992
+        }
+      },
+      "isotonic": {
+        "A": {
+          "accept": 0.11354205960015089,
+          "threshold": 0.8260869565217391,
+          "saving": 0.8834123846633014,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 41
+        },
+        "B": {
+          "accept": 0.1107331821617536,
+          "threshold": 0.8404255319148937,
+          "saving": 0.8862212621016986,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 44
+        }
+      }
+    },
+    "resnet18": {
+      "identity": {
+        "A": {
+          "accept": 0.11090154658619389,
+          "threshold": 0.9857181310653687,
+          "saving": 0.8632337631819551,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1150
+        },
+        "B": {
+          "accept": 0.07482993197278912,
+          "threshold": 0.9991065859794617,
+          "saving": 0.8993053777953599,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1137
+        }
+      },
+      "temperature": {
+        "A": {
+          "accept": 0.11090154658619389,
+          "threshold": 0.8830656703561314,
+          "saving": 0.8632337631819551,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1150
+        },
+        "B": {
+          "accept": 0.07482993197278912,
+          "threshold": 0.9577786318807653,
+          "saving": 0.8993053777953599,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1137
+        }
+      },
+      "platt": {
+        "A": {
+          "accept": 0.11090154658619389,
+          "threshold": 0.8110316129074742,
+          "saving": 0.8632337631819551,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1150
+        },
+        "B": {
+          "accept": 0.07482993197278912,
+          "threshold": 0.9161356727834319,
+          "saving": 0.8993053777953599,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 1137
+        }
+      },
+      "isotonic": {
+        "A": {
+          "accept": 0.11241041116559788,
+          "threshold": 0.8181818181818182,
+          "saving": 0.8617248986025511,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 36
+        },
+        "B": {
+          "accept": 0.09410430839002268,
+          "threshold": 0.9113924050632911,
+          "saving": 0.8800310013781263,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 41
+        }
+      }
+    },
+    "resnet50": {
+      "identity": {
+        "A": {
+          "accept": 0.0999622783855149,
+          "threshold": 0.9110215306282043,
+          "saving": 0.8414342574237917,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1234
+        },
+        "B": {
+          "accept": 0.08163265306122448,
+          "threshold": 0.9245515465736389,
+          "saving": 0.8597638827480821,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1220
+        }
+      },
+      "temperature": {
+        "A": {
+          "accept": 0.0999622783855149,
+          "threshold": 0.9110215306282043,
+          "saving": 0.8414342574237917,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1234
+        },
+        "B": {
+          "accept": 0.08163265306122448,
+          "threshold": 0.9245515465736389,
+          "saving": 0.8597638827480821,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1220
+        }
+      },
+      "platt": {
+        "A": {
+          "accept": 0.0999622783855149,
+          "threshold": 0.9110215306282043,
+          "saving": 0.8414342574237917,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1234
+        },
+        "B": {
+          "accept": 0.08163265306122448,
+          "threshold": 0.9245515465736389,
+          "saving": 0.8597638827480821,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1220
+        }
+      },
+      "isotonic": {
+        "A": {
+          "accept": 0.11165597887589589,
+          "threshold": 0.8771929824561403,
+          "saving": 0.8297405569334108,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 41
+        },
+        "B": {
+          "accept": 0.09221466364323508,
+          "threshold": 0.8478260869565217,
+          "saving": 0.8491818721660715,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 38
+        }
+      }
+    },
+    "effb0": {
+      "identity": {
+        "A": {
+          "accept": 0.11882308562806489,
+          "threshold": 0.6586371064186096,
+          "saving": 0.8757238004011473,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1226
+        },
+        "B": {
+          "accept": 0.13529856386999245,
+          "threshold": 0.6261242032051086,
+          "saving": 0.8592483221592198,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1248
+        }
+      },
+      "temperature": {
+        "A": {
+          "accept": 0.11882308562806489,
+          "threshold": 0.6586371064186096,
+          "saving": 0.8757238004011473,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1226
+        },
+        "B": {
+          "accept": 0.13529856386999245,
+          "threshold": 0.6261242032051086,
+          "saving": 0.8592483221592198,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1248
+        }
+      },
+      "platt": {
+        "A": {
+          "accept": 0.11882308562806489,
+          "threshold": 0.6586371064186096,
+          "saving": 0.8757238004011473,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1226
+        },
+        "B": {
+          "accept": 0.13529856386999245,
+          "threshold": 0.6261242032051086,
+          "saving": 0.8592483221592198,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1248
+        }
+      },
+      "isotonic": {
+        "A": {
+          "accept": 0.14183327046397587,
+          "threshold": 0.6078431372549019,
+          "saving": 0.8527136155652363,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 35
+        },
+        "B": {
+          "accept": 0.14247921390778534,
+          "threshold": 0.625,
+          "saving": 0.8520676721214269,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 36
+        }
+      }
+    },
+    "tiny": {
+      "identity": {
+        "A": {
+          "accept": 0.15503583553376085,
+          "threshold": 0.31837916374206543,
+          "saving": 0.8177930725403011,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1124
+        },
+        "B": {
+          "accept": 0.13227513227513227,
+          "threshold": 0.3905920386314392,
+          "saving": 0.8405537757989296,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1144
+        }
+      },
+      "temperature": {
+        "A": {
+          "accept": 0.15503583553376085,
+          "threshold": 0.31837916374206543,
+          "saving": 0.8177930725403011,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1124
+        },
+        "B": {
+          "accept": 0.13227513227513227,
+          "threshold": 0.3905920386314392,
+          "saving": 0.8405537757989296,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1144
+        }
+      },
+      "platt": {
+        "A": {
+          "accept": 0.15503583553376085,
+          "threshold": 0.31837916374206543,
+          "saving": 0.8177930725403011,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1124
+        },
+        "B": {
+          "accept": 0.13227513227513227,
+          "threshold": 0.3905920386314392,
+          "saving": 0.8405537757989296,
+          "same_operating_points_as_raw": true,
+          "n_thresholds_in_range": 1144
+        }
+      },
+      "isotonic": {
+        "A": {
+          "accept": 0.15692191625801585,
+          "threshold": 0.5227272727272727,
+          "saving": 0.8159069918160461,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 47
+        },
+        "B": {
+          "accept": 0.1670445956160242,
+          "threshold": 0.45871559633027525,
+          "saving": 0.8057843124580377,
+          "same_operating_points_as_raw": false,
+          "n_thresholds_in_range": 34
+        }
+      }
+    }
+  }
+}

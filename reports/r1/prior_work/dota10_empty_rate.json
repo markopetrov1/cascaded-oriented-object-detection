@@ -1,0 +1,16 @@
+{
+  "train": {
+    "n_tiles": 15749,
+    "empty_rate_dota15_all": 0.3034478379579656,
+    "empty_rate_no_crane": 0.3034478379579656,
+    "empty_rate_dota10_longside": 0.3037018223379262,
+    "empty_rate_dota10_sqrtarea": 0.3086545177471586
+  },
+  "val": {
+    "n_tiles": 5297,
+    "empty_rate_dota15_all": 0.32414574287332454,
+    "empty_rate_no_crane": 0.32414574287332454,
+    "empty_rate_dota10_longside": 0.32508967340003775,
+    "empty_rate_dota10_sqrtarea": 0.3316971870870304
+  }
+}

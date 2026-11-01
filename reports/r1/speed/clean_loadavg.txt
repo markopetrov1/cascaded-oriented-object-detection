@@ -1,0 +1,2 @@
+ 03:33:41 up 67 days, 13:42,  9 users,  load average: 7,58, 12,71, 13,92
+ 04:35:23 up 67 days, 14:44,  9 users,  load average: 4,10, 7,16, 6,70

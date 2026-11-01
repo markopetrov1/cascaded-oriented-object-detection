@@ -1,0 +1,68 @@
+{
+  "ship / source GF": {
+    "scenes": 27,
+    "dap": -0.13072032019861823,
+    "largest_single_scene": {
+      "scene": "P1314",
+      "objects": 30,
+      "tiles": 25,
+      "accepted": 3,
+      "dap_without": -0.09837153542168553
+    }
+  },
+  "ship / source JL": {
+    "scenes": 48,
+    "dap": -0.05816621362379193,
+    "largest_single_scene": {
+      "scene": "P1738",
+      "objects": 39,
+      "tiles": 25,
+      "accepted": 2,
+      "dap_without": 0.0
+    }
+  },
+  "ship / gsd 0.6-1.5": {
+    "scenes": 107,
+    "dap": -0.11136578099889005,
+    "largest_single_scene": {
+      "scene": "P1314",
+      "objects": 30,
+      "tiles": 25,
+      "accepted": 3,
+      "dap_without": -0.0870229529320139
+    }
+  },
+  "plane / gsd 0.3-0.6": {
+    "scenes": 34,
+    "dap": -0.1373632872191688,
+    "largest_single_scene": {
+      "scene": "P1384",
+      "objects": 156,
+      "tiles": 49,
+      "accepted": 15,
+      "dap_without": -0.04607684181279259
+    }
+  },
+  "small_vehicle / source GoogleEarth": {
+    "scenes": 383,
+    "dap": -0.05179667140324751,
+    "largest_single_scene": {
+      "scene": "P2754",
+      "objects": 813,
+      "tiles": 20,
+      "accepted": 4,
+      "dap_without": -0.012714468991562256
+    }
+  },
+  "small_vehicle / gsd 0.15-0.3": {
+    "scenes": 130,
+    "dap": -0.08491283972947039,
+    "largest_single_scene": {
+      "scene": "P2754",
+      "objects": 813,
+      "tiles": 20,
+      "accepted": 4,
+      "dap_without": -0.011967157619463098
+    }
+  }
+}
