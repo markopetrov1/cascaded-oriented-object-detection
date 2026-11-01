@@ -151,7 +151,7 @@ def figure_provenance() -> None:
     hgt = 0.62
     segs = [("detector runs, tile has objects", PALETTE[0], HATCHES[0]),
             ("detector runs, tile is empty", PALETTE[3], HATCHES[3]),
-            ("skipped, tile had objects (recall lost)", PALETTE[1], HATCHES[1]),
+            ("skipped, tile had objects (recall at risk)", PALETTE[1], HATCHES[1]),
             ("skipped, tile was empty (free saving)", PALETTE[2], HATCHES[2])]
     vals = np.array([[p * tpr, (1 - p) * fpr, p * (1 - tpr), (1 - p) * (1 - fpr)] for _, p, tpr, fpr, _ in items])
     left = np.zeros(len(items))

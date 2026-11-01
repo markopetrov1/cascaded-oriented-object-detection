@@ -83,7 +83,7 @@ def sweep_table() -> str:
 
 \begin{table*}[!t]
 \centering
-\caption{Every DOTA-1.5 gating task, ordered by positive-tile rate, with a MobileNetV3-large gate and the sixteen-class detector. \emph{Save} is detector arithmetic saved at the operating point chosen on held-out scenes, against running the detector on every tile; {\protect\mathversion{normal}$\Delta$}AP is the change in image-level AP$@0.5$ ($101$-point) at that point, in percentage points, with its $95$\,\% interval from $1000$ scene-level bootstrap resamples (CI). \emph{Charged} is the share of the skipped detector work that comes from rejecting target-bearing tiles. The last two columns repeat the first version's protocol, which selects and reports on the same tiles. Operating points use the raw gate score; the gates are the sweep gates of Section~\ref{sec:experiments}. The HRSC2016 row uses the ships detector and a DOTA-chosen operating point. PR-AUC and full-pass AP are on all validation tiles.}
+\caption{Every DOTA-1.5 gating task, ordered by positive-tile rate, with a MobileNetV3-large gate and the sixteen-class detector. \emph{Save} is detector arithmetic saved at the operating point chosen on held-out scenes, against running the detector on every tile; {\protect\mathversion{normal}$\Delta$}AP is the change in image-level AP$@0.5$ ($101$-point) at that point, in percentage points, with its $95$\% interval from $1000$ scene-level bootstrap resamples (CI). \emph{Charged} is the share of the skipped detector work that comes from rejecting target-bearing tiles. The last two columns use the same-split protocol, which selects and reports on the same tiles. Operating points use the raw gate score; the gates are the sweep gates of Section~\ref{sec:experiments}. The HRSC2016 row uses the ships detector and a DOTA-chosen operating point. PR-AUC and full-pass AP are on all validation tiles.}
 \label{tab:sweep}
 \small
 \setlength{\tabcolsep}{4pt}
@@ -105,20 +105,20 @@ def speed_table() -> str:
     if c is None:
         return ""
     per = lambda e, b, prec="fp32": e[prec][str(b)]["median_ms"] / int(b)
-    iqr = lambda e: f"{e['fp32']['1']['q25_ms']:.2f}--{e['fp32']['1']['q75_ms']:.2f}"
+    iqr = lambda e: f"{{\\scriptsize({e['fp32']['1']['q25_ms']:.2f}--{e['fp32']['1']['q75_ms']:.2f})}}"
     names = {"mbv3small": "MobileNetV3-small", "mbv3large": "MobileNetV3-large", "resnet18": "ResNet-18",
              "resnet50": "ResNet-50", "effb0": "EfficientNet-B0", "tiny": "tiny"}
     rows = []
     for k, n in names.items():
         e = c["gates"][k]
-        rows.append(f"Gate, {n} & ${e['gflops']:.2f}$ & ${per(e, 1):.2f}$ ({iqr(e)}) & ${per(e, 32):.2f}$ & "
+        rows.append(f"Gate, {n} & ${e['gflops']:.2f}$ & ${per(e, 1):.2f}$ {iqr(e)} & ${per(e, 32):.2f}$ & "
                     f"${per(e, 32, 'fp16'):.2f}$ \\\\")
     rows.append(r"\midrule")
     dn = {"yolo11n_ships": "YOLO11n-OBB", "yolo11m_ships_p50": "YOLO11m-OBB, ships",
           "yolo11m_multiclass": "YOLO11m-OBB, 16 classes"}
     for k, n in dn.items():
         e = c["detectors"][k]
-        rows.append(f"{n} & ${e['gflops']:.1f}$ & ${per(e, 1):.2f}$ ({iqr(e)}) & ${per(e, 16):.2f}$ & "
+        rows.append(f"{n} & ${e['gflops']:.1f}$ & ${per(e, 1):.2f}$ {iqr(e)} & ${per(e, 16):.2f}$ & "
                     f"${per(e, 16, 'fp16'):.2f}$ \\\\")
     p = c["prefix"]["10"]
     pre1 = p["fp32"]["1"]["prefix"]["median_ms"]
@@ -133,12 +133,14 @@ def speed_table() -> str:
 \caption{Per-tile cost of every component on one Quadro RTX 8000: arithmetic at batch one, and latency of the forward pass on a device-resident input (median, interquartile range at batch one, CUDA events, $200$ iterations). \emph{Batched} is per tile at batch $32$ for gates and $16$ for detectors and backbone parts. Gates run at $256$\,px and detectors at $1024$\,px. Decoding, non-maximum suppression and transfers are excluded here and included in Table~\ref{tab:runtime}.}
 \label{tab:speed}
 \footnotesize
-\setlength{\tabcolsep}{3pt}
+\setlength{\tabcolsep}{2.2pt}
 \begin{tabular}{lrrrr}
 \toprule
- & & \multicolumn{2}{c}{ms per tile, FP32} & FP16 \\
-\cmidrule(lr){3-4}
-Component & GFLOPs & batch 1 & batched & batched \\
+ & & \multicolumn{3}{c}{ms per tile} \\
+\cmidrule(lr){3-5}
+ & & \multicolumn{1}{c}{batch 1} & \multicolumn{2}{c}{batched} \\
+\cmidrule(lr){4-5}
+Component & GFLOPs & FP32 & FP32 & FP16 \\
 \midrule
 """ + "\n".join(rows) + r"""
 \bottomrule
@@ -169,7 +171,7 @@ def runtime_table() -> str:
     return r"""
 \begin{table}[!t]
 \centering
-\caption{End-to-end time per tile on $""" + str(r["tiles"]) + r"""$ tiles of $""" + str(r["scenes"]) + r"""$ DOTA validation scenes, ships, with the decoupled MobileNetV3-large gate and the fused head of Section~\ref{sec:fusing}, each at the threshold the selection rule of Section~\ref{sec:experiments} chooses on all of DOTA validation; {\protect\mathversion{normal}$\Delta$}AP is the AP$@0.5$ change of that threshold on DOTA validation, in percentage points. Included: host-to-device transfer, preprocessing, gate, detector or split backbone, decoding with rotated non-maximum suppression, and the per-scene merge. \emph{Streaming} processes one tile at a time; \emph{batched} sends each scene's tiles through the gate in batches of up to $32$ and its accepted tiles through the detector in batches of up to $16$. Median of five passes.}
+\caption{End-to-end time per tile on $""" + str(r["tiles"]) + r"""$ tiles of $""" + str(r["scenes"]) + r"""$ DOTA validation scenes, ships, with the decoupled MobileNetV3-large gate and the fused head of Section~\ref{sec:fusing}, each at the threshold the selection rule of Section~\ref{sec:experiments} chooses on all of DOTA validation; {\protect\mathversion{normal}$\Delta$}AP is the AP$@0.5$ change of that threshold on DOTA validation, the scenes it was chosen on, in percentage points. Included: host-to-device transfer, preprocessing, gate, detector or split backbone, decoding with rotated non-maximum suppression, and the per-scene merge. \emph{Streaming} processes one tile at a time; \emph{batched} sends each scene's tiles through the gate in batches of up to $32$ and its accepted tiles through the detector in batches of up to $16$. Median of five passes.}
 \label{tab:runtime}
 \footnotesize
 \setlength{\tabcolsep}{3.5pt}
@@ -230,7 +232,7 @@ def objects_table() -> str:
     return r"""
 \begin{table*}[!t]
 \centering
-\caption{Object-level effect of tile rejection after merging, at the operating points chosen on held-out scenes, for non-difficult objects of the gated class at detector confidence $0.25$, with the gates the selection rule picks (ResNet-50, and for small vehicles ResNet-18 in one fold). \emph{Only on rejected tiles} is the share of objects all of whose tiles were rejected; of those, \emph{lost} were found by the full pass and \emph{missed anyway} were not. Objects with some tiles rejected are \emph{recovered} when an accepted overlapping tile still yields them. Rows marked $\ast$ use the ships detector pair of Section~\ref{sec:fusing}, first seed. The lower part gives object recall by object size, the square root of the polygon area in pixels: the number of objects $n$, the full-pass recall and the cascade's change in percentage points (left blank below $20$ objects).}
+\caption{Object-level effect of tile rejection after merging, at the operating points chosen on held-out scenes, for non-difficult objects of the gated class at detector confidence $0.25$, with the gates the selection rule picks (ResNet-50, and for small vehicles ResNet-18 in one fold). \emph{Only on rejected tiles} is the share of objects all of whose tiles were rejected; of those, \emph{lost} were found by the full pass and \emph{missed anyway} were not. Objects with some tiles rejected are \emph{recovered} when an accepted overlapping tile still yields them. Rows marked $\ast$ use the ships detector pair of Section~\ref{sec:fusing}, first seed, with its six-backbone MobileNetV3-large gate and the fused head. The lower part gives object recall by object size, the square root of the polygon area in pixels: the number of objects $n$, the full-pass recall and the cascade's change in percentage points (left blank below $20$ objects).}
 \label{tab:objects}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -276,12 +278,30 @@ Gate & ident. & temp. & Platt & isot. & ctx.-ad. \\
 """
 
 
+WORDS = {5: "five", 8: "eight"}
+
+
+def gsd_note(omitted: dict) -> str:
+    """Caption sentence for the ground-sampling-distance strata the table leaves out."""
+    unknown, = {n for n, _ in omitted.pop("unknown")}
+    assert set(omitted) == {">=1.5m"} and all(pos == 0 for _, pos in omitted[">=1.5m"]), omitted
+    coarse, = {n for n, _ in omitted[">=1.5m"]}
+    return (f"Ground sampling distance is unknown for {WORDS.get(unknown, unknown)} scenes, and the "
+            f"{WORDS.get(coarse, coarse)} scenes coarser than $1.5$\\,m hold no ships or planes; both are omitted.")
+
+
 def strata_table() -> str:
     out = []
+    omitted = {}
     for task, T in (("ship", "Ships"), ("plane", "Planes")):
         d = load(f"stratified/pillars_{task}.json")
         if d is None:
             continue
+        # strata left out of the table: unknown ground sampling distance, and any stratum without
+        # a target, whose AP is undefined
+        for b, r in d["by_gsd"].items():
+            if b == "unknown" or r["mAP50_full"] != r["mAP50_full"]:
+                omitted.setdefault(b, set()).add((r["n_images"], r["n_positive"]))
         out.append(r"\multicolumn{8}{l}{\textit{" + T + r"}} \\")
         def row(axis, b, r):
             return " & ".join([axis, b, str(r["n_images"]), pct(r["p_plus"]), f(r["accept"]), f(r["tpr"], 2),
@@ -300,7 +320,7 @@ def strata_table() -> str:
     return r"""
 \begin{table*}[!t]
 \centering
-\caption{Stratified behaviour at the operating points chosen on held-out scenes (sixteen-class detector, gates chosen by the selection rule: ResNet-50, and for small vehicles ResNet-18 in one fold). Strata are properties of the scene, so AP$@0.5$ ($101$-point) is computed per stratum for the full pass, with {\protect\mathversion{normal}$\Delta$}AP the cascade's change in percentage points. Ground sampling distance is unknown for eight scenes, which are omitted.}
+\caption{Stratified behaviour at the operating points chosen on held-out scenes (sixteen-class detector, gates chosen by the selection rule: ResNet-50, and for small vehicles ResNet-18 in one fold). Strata are properties of the scene, so AP$@0.5$ ($101$-point) is computed per stratum for the full pass, with {\protect\mathversion{normal}$\Delta$}AP the cascade's change in percentage points. """ + gsd_note(omitted) + r"""}
 \label{tab:strat}
 \footnotesize
 \setlength{\tabcolsep}{5pt}
@@ -353,7 +373,7 @@ def fusing_table() -> str:
     return r"""
 \begin{table}[!t]
 \centering
-\caption{Fused against decoupled gating on DOTA-1.5 ships, both arms with a detector trained for $50$ epochs at patience $50$ (""" + seeds + r"""). Savings are of detector arithmetic at the operating points chosen on held-out scenes; the full accounting charges the fused head for the backbone prefix it reads and the decoupled gate for its own cost. Times are end to end (Table~\ref{tab:runtime}), measured on one seed at the thresholds chosen on all of DOTA validation, which accept slightly different shares of tiles.}
+\caption{Fused against decoupled gating on DOTA-1.5 ships, both arms with a detector trained for $50$ epochs at patience $50$ (""" + seeds + r"""). Savings are of detector arithmetic at the operating points chosen on held-out scenes; the full accounting charges the fused head for the backbone prefix it reads and the decoupled gate for its own cost. Times are end to end (Table~\ref{tab:runtime}), measured on one seed at the thresholds chosen on all of DOTA validation rather than at the held-out points above.}
 \label{tab:fusing}
 \footnotesize
 \setlength{\tabcolsep}{4pt}

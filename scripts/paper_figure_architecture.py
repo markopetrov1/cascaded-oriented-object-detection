@@ -113,7 +113,7 @@ def main() -> int:
             fontsize=6.6, color=INK, zorder=4)
     terms = [
         (r"$(1-p_+)(1-\mathrm{FPR})$", "empty tiles skipped", PALETTE[2]),
-        (r"$+\;p_+(1-\mathrm{TPR})$", "detections dropped", PALETTE[1]),
+        (r"$+\;p_+(1-\mathrm{TPR})$", "target tiles rejected", PALETTE[1]),
         (r"$-\;G_\mathrm{g}/G_\mathrm{f}$", "gate overhead", PALETTE[3]),
     ]
     x = 0.445

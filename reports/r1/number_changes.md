@@ -1,6 +1,6 @@
 # Generated numbers, submission against revision
 
-Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (775 macros), written by `scripts/r1_number_changes.py`.
+Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (824 macros), written by `scripts/r1_number_changes.py`.
 
 The revision changed the protocol behind most numbers: predictions at confidence 0.001 instead of 0.25, image-level AP after merging tiles, a 101-point AP budget applied on held-out scenes (two-fold cross-fitting), the shared-backbone cost for fused gates, and one timing protocol. A macro that kept its name may therefore measure something slightly different; the changelog gives the reason for each change.
 
@@ -95,7 +95,7 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `praucOANjoint` | 0.946 |
 | `praucIndepMatched` | 0.885 |
 
-## Added (728)
+## Added (777)
 
 | Macro | Revision |
 |---|---|
@@ -827,3 +827,52 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `dapHiSweepTennisCourt` | $-$0.96 |
 | `dapLoSweepSmallVeh` | 9.81 |
 | `dapHiSweepSmallVeh` | $-$0.08 |
+| `nAtCeiling` | 4 |
+| `maxCeilGap` | 64 |
+| `nCIBelowBudget` | 9 |
+| `idPredStreamDecHeld` | 59 |
+| `idPredBatchDecHeld` | 82 |
+| `rtStreamDecMin` | 13.4 |
+| `rtStreamDecMax` | 18.3 |
+| `rtStreamFusedMin` | 20.8 |
+| `rtStreamFusedMax` | 24.3 |
+| `rtBatchDecMin` | 6.0 |
+| `rtBatchDecMax` | 7.6 |
+| `rtBatchFusedMin` | 17.1 |
+| `rtBatchFusedMax` | 17.7 |
+| `objSweepMin` | 0.4 |
+| `objSweepMax` | 4.9 |
+| `tprSweepLargeVeh` | 0.605 |
+| `objLargeVeh` | 2.1 |
+| `objLargeVehMissed` | 104 |
+| `objLargeVehRecovered` | 60 |
+| `objTennisSmallN` | 31 |
+| `objTennisSmall` | 52 |
+| `recDeltaAllSmallVeh` | 8.8 |
+| `diffShareSmallVeh` | 76 |
+| `dapLoSodaShips` | 5.3 |
+| `dapHiSodaShips` | 1.0 |
+| `dapHiSignShips` | - |
+| `ceilSodaPosShips` | 85.9 |
+| `ceilSodaEmptyShips` | 97.1 |
+| `saveSodaLabShips` | 95.6 |
+| `accSodaIgnShips` | 12 |
+| `accSodaLabShips` | 4 |
+| `dapLoSodaPlanes` | 2.1 |
+| `dapHiSodaPlanes` | 0.1 |
+| `dapHiSignPlanes` |   |
+| `ceilSodaPosPlanes` | 80.2 |
+| `ceilSodaEmptyPlanes` | 91.5 |
+| `saveSodaLabPlanes` | 52.7 |
+| `accSodaIgnPlanes` | 52 |
+| `accSodaLabPlanes` | 47 |
+| `dapLoSodaSmallVeh` | 1.6 |
+| `dapHiSodaSmallVeh` | 0.6 |
+| `dapHiSignSmallVeh` | - |
+| `ceilSodaPosSmallVeh` | 62.3 |
+| `ceilSodaEmptySmallVeh` | 73.5 |
+| `saveSodaLabSmallVeh` | 63.1 |
+| `accSodaIgnSmallVeh` | 62 |
+| `accSodaLabSmallVeh` | 37 |
+| `ceilSodaEmptyRise` | 3.4 |
+| `teaserRejectedShare` | 20 |

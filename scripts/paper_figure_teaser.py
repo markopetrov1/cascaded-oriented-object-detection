@@ -127,7 +127,7 @@ def main() -> int:
     categories = {
         (True, True): (PALETTE[0], "detector runs, tile has ships"),
         (True, False): (PALETTE[3], "detector runs, tile empty (leak)"),
-        (False, True): (PALETTE[1], "skipped, tile had ships (recall lost)"),
+        (False, True): (PALETTE[1], "skipped, tile had ships (recall at risk)"),
         (False, False): (PALETTE[2], "skipped, tile empty (true saving)"),
     }
     counts = {k: 0 for k in categories}

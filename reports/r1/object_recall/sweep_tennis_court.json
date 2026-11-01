@@ -1,0 +1,752 @@
+{
+  "run": "reports/r1/cascade/sweep/tennis_court.json",
+  "classes": [
+    4
+  ],
+  "conf_thresholds": {
+    "conf_0.25": 0.25,
+    "conf_0.001": 0.001,
+    "conf_f1opt": 0.83528
+  },
+  "size_buckets_px": [
+    [
+      0,
+      16
+    ],
+    [
+      16,
+      32
+    ],
+    [
+      32,
+      64
+    ],
+    [
+      64,
+      128
+    ],
+    [
+      128,
+      Infinity
+    ]
+  ],
+  "results": {
+    "risk_pooled": {
+      "accept_rate": 0.045308665282235226,
+      "conf_0.25": {
+        "non_difficult": {
+          "overall": {
+            "n_objects": 744,
+            "recall_full": 0.9610215053763441,
+            "recall_cascade": 0.9220430107526881,
+            "lost": 29,
+            "gained": 0,
+            "on_fully_rejected_tiles": 36,
+            "fully_rejected_lost": 27,
+            "fully_rejected_missed_anyway": 9,
+            "on_partly_rejected_tiles": 37,
+            "partly_rejected_recovered": 25,
+            "partly_rejected_lost": 2,
+            "partly_rejected_missed_anyway": 10,
+            "delta_recall_pp": -3.897849462365599,
+            "share_on_rejected_tiles_pp": 4.838709677419355
+          },
+          "by_size": {
+            "0-16": {
+              "n_objects": 5,
+              "recall_full": 0.4,
+              "recall_cascade": 0.0,
+              "lost": 2,
+              "gained": 0,
+              "on_fully_rejected_tiles": 5,
+              "fully_rejected_lost": 2,
+              "fully_rejected_missed_anyway": 3,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -40.0,
+              "share_on_rejected_tiles_pp": 100.0
+            },
+            "16-32": {
+              "n_objects": 31,
+              "recall_full": 0.967741935483871,
+              "recall_cascade": 0.45161290322580644,
+              "lost": 16,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 14,
+              "fully_rejected_missed_anyway": 1,
+              "on_partly_rejected_tiles": 6,
+              "partly_rejected_recovered": 4,
+              "partly_rejected_lost": 2,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -51.61290322580645,
+              "share_on_rejected_tiles_pp": 48.38709677419355
+            },
+            "32-64": {
+              "n_objects": 232,
+              "recall_full": 0.9224137931034483,
+              "recall_cascade": 0.8879310344827587,
+              "lost": 8,
+              "gained": 0,
+              "on_fully_rejected_tiles": 13,
+              "fully_rejected_lost": 8,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 21,
+              "partly_rejected_recovered": 13,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 8,
+              "delta_recall_pp": -3.4482758620689613,
+              "share_on_rejected_tiles_pp": 5.603448275862069
+            },
+            "64-128": {
+              "n_objects": 341,
+              "recall_full": 0.9824046920821115,
+              "recall_cascade": 0.9736070381231672,
+              "lost": 3,
+              "gained": 0,
+              "on_fully_rejected_tiles": 3,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 10,
+              "partly_rejected_recovered": 8,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -0.8797653958944274,
+              "share_on_rejected_tiles_pp": 0.8797653958944281
+            },
+            "128-inf": {
+              "n_objects": 135,
+              "recall_full": 0.9925925925925926,
+              "recall_cascade": 0.9925925925925926,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 0,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 0.0
+            }
+          },
+          "by_source": {
+            "GoogleEarth": {
+              "n_objects": 744,
+              "recall_full": 0.9610215053763441,
+              "recall_cascade": 0.9220430107526881,
+              "lost": 29,
+              "gained": 0,
+              "on_fully_rejected_tiles": 36,
+              "fully_rejected_lost": 27,
+              "fully_rejected_missed_anyway": 9,
+              "on_partly_rejected_tiles": 37,
+              "partly_rejected_recovered": 25,
+              "partly_rejected_lost": 2,
+              "partly_rejected_missed_anyway": 10,
+              "delta_recall_pp": -3.897849462365599,
+              "share_on_rejected_tiles_pp": 4.838709677419355
+            }
+          }
+        },
+        "all_objects": {
+          "overall": {
+            "n_objects": 763,
+            "recall_full": 0.9528178243774574,
+            "recall_cascade": 0.9121887287024901,
+            "lost": 31,
+            "gained": 0,
+            "on_fully_rejected_tiles": 38,
+            "fully_rejected_lost": 29,
+            "fully_rejected_missed_anyway": 9,
+            "on_partly_rejected_tiles": 37,
+            "partly_rejected_recovered": 25,
+            "partly_rejected_lost": 2,
+            "partly_rejected_missed_anyway": 10,
+            "delta_recall_pp": -4.062909567496731,
+            "share_on_rejected_tiles_pp": 4.980340760157274
+          },
+          "by_size": {
+            "0-16": {
+              "n_objects": 5,
+              "recall_full": 0.4,
+              "recall_cascade": 0.0,
+              "lost": 2,
+              "gained": 0,
+              "on_fully_rejected_tiles": 5,
+              "fully_rejected_lost": 2,
+              "fully_rejected_missed_anyway": 3,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -40.0,
+              "share_on_rejected_tiles_pp": 100.0
+            },
+            "16-32": {
+              "n_objects": 31,
+              "recall_full": 0.967741935483871,
+              "recall_cascade": 0.45161290322580644,
+              "lost": 16,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 14,
+              "fully_rejected_missed_anyway": 1,
+              "on_partly_rejected_tiles": 6,
+              "partly_rejected_recovered": 4,
+              "partly_rejected_lost": 2,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -51.61290322580645,
+              "share_on_rejected_tiles_pp": 48.38709677419355
+            },
+            "32-64": {
+              "n_objects": 244,
+              "recall_full": 0.9098360655737705,
+              "recall_cascade": 0.8688524590163934,
+              "lost": 10,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 10,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 21,
+              "partly_rejected_recovered": 13,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 8,
+              "delta_recall_pp": -4.098360655737709,
+              "share_on_rejected_tiles_pp": 6.147540983606557
+            },
+            "64-128": {
+              "n_objects": 348,
+              "recall_full": 0.9741379310344828,
+              "recall_cascade": 0.9655172413793104,
+              "lost": 3,
+              "gained": 0,
+              "on_fully_rejected_tiles": 3,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 10,
+              "partly_rejected_recovered": 8,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -0.8620689655172376,
+              "share_on_rejected_tiles_pp": 0.8620689655172413
+            },
+            "128-inf": {
+              "n_objects": 135,
+              "recall_full": 0.9925925925925926,
+              "recall_cascade": 0.9925925925925926,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 0,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 0.0
+            }
+          },
+          "by_source": {
+            "GoogleEarth": {
+              "n_objects": 763,
+              "recall_full": 0.9528178243774574,
+              "recall_cascade": 0.9121887287024901,
+              "lost": 31,
+              "gained": 0,
+              "on_fully_rejected_tiles": 38,
+              "fully_rejected_lost": 29,
+              "fully_rejected_missed_anyway": 9,
+              "on_partly_rejected_tiles": 37,
+              "partly_rejected_recovered": 25,
+              "partly_rejected_lost": 2,
+              "partly_rejected_missed_anyway": 10,
+              "delta_recall_pp": -4.062909567496731,
+              "share_on_rejected_tiles_pp": 4.980340760157274
+            }
+          }
+        }
+      },
+      "conf_0.001": {
+        "non_difficult": {
+          "overall": {
+            "n_objects": 744,
+            "recall_full": 0.9690860215053764,
+            "recall_cascade": 0.9314516129032258,
+            "lost": 29,
+            "gained": 1,
+            "on_fully_rejected_tiles": 36,
+            "fully_rejected_lost": 29,
+            "fully_rejected_missed_anyway": 7,
+            "on_partly_rejected_tiles": 37,
+            "partly_rejected_recovered": 27,
+            "partly_rejected_lost": 0,
+            "partly_rejected_missed_anyway": 10,
+            "delta_recall_pp": -3.7634408602150615,
+            "share_on_rejected_tiles_pp": 4.838709677419355
+          },
+          "by_size": {
+            "0-16": {
+              "n_objects": 5,
+              "recall_full": 0.6,
+              "recall_cascade": 0.0,
+              "lost": 3,
+              "gained": 0,
+              "on_fully_rejected_tiles": 5,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 2,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -60.0,
+              "share_on_rejected_tiles_pp": 100.0
+            },
+            "16-32": {
+              "n_objects": 31,
+              "recall_full": 1.0,
+              "recall_cascade": 0.5161290322580645,
+              "lost": 15,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 15,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 6,
+              "partly_rejected_recovered": 6,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -48.38709677419355,
+              "share_on_rejected_tiles_pp": 48.38709677419355
+            },
+            "32-64": {
+              "n_objects": 232,
+              "recall_full": 0.9310344827586207,
+              "recall_cascade": 0.896551724137931,
+              "lost": 8,
+              "gained": 0,
+              "on_fully_rejected_tiles": 13,
+              "fully_rejected_lost": 8,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 21,
+              "partly_rejected_recovered": 13,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 8,
+              "delta_recall_pp": -3.4482758620689613,
+              "share_on_rejected_tiles_pp": 5.603448275862069
+            },
+            "64-128": {
+              "n_objects": 341,
+              "recall_full": 0.9882697947214076,
+              "recall_cascade": 0.9824046920821115,
+              "lost": 3,
+              "gained": 1,
+              "on_fully_rejected_tiles": 3,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 10,
+              "partly_rejected_recovered": 8,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -0.5865102639296182,
+              "share_on_rejected_tiles_pp": 0.8797653958944281
+            },
+            "128-inf": {
+              "n_objects": 135,
+              "recall_full": 0.9925925925925926,
+              "recall_cascade": 0.9925925925925926,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 0,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 0.0
+            }
+          },
+          "by_source": {
+            "GoogleEarth": {
+              "n_objects": 744,
+              "recall_full": 0.9690860215053764,
+              "recall_cascade": 0.9314516129032258,
+              "lost": 29,
+              "gained": 1,
+              "on_fully_rejected_tiles": 36,
+              "fully_rejected_lost": 29,
+              "fully_rejected_missed_anyway": 7,
+              "on_partly_rejected_tiles": 37,
+              "partly_rejected_recovered": 27,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 10,
+              "delta_recall_pp": -3.7634408602150615,
+              "share_on_rejected_tiles_pp": 4.838709677419355
+            }
+          }
+        },
+        "all_objects": {
+          "overall": {
+            "n_objects": 763,
+            "recall_full": 0.9606815203145478,
+            "recall_cascade": 0.9213630406290957,
+            "lost": 31,
+            "gained": 1,
+            "on_fully_rejected_tiles": 38,
+            "fully_rejected_lost": 31,
+            "fully_rejected_missed_anyway": 7,
+            "on_partly_rejected_tiles": 37,
+            "partly_rejected_recovered": 27,
+            "partly_rejected_lost": 0,
+            "partly_rejected_missed_anyway": 10,
+            "delta_recall_pp": -3.93184796854521,
+            "share_on_rejected_tiles_pp": 4.980340760157274
+          },
+          "by_size": {
+            "0-16": {
+              "n_objects": 5,
+              "recall_full": 0.6,
+              "recall_cascade": 0.0,
+              "lost": 3,
+              "gained": 0,
+              "on_fully_rejected_tiles": 5,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 2,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -60.0,
+              "share_on_rejected_tiles_pp": 100.0
+            },
+            "16-32": {
+              "n_objects": 31,
+              "recall_full": 1.0,
+              "recall_cascade": 0.5161290322580645,
+              "lost": 15,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 15,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 6,
+              "partly_rejected_recovered": 6,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": -48.38709677419355,
+              "share_on_rejected_tiles_pp": 48.38709677419355
+            },
+            "32-64": {
+              "n_objects": 244,
+              "recall_full": 0.9180327868852459,
+              "recall_cascade": 0.8770491803278688,
+              "lost": 10,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 10,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 21,
+              "partly_rejected_recovered": 13,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 8,
+              "delta_recall_pp": -4.098360655737709,
+              "share_on_rejected_tiles_pp": 6.147540983606557
+            },
+            "64-128": {
+              "n_objects": 348,
+              "recall_full": 0.9798850574712644,
+              "recall_cascade": 0.9741379310344828,
+              "lost": 3,
+              "gained": 1,
+              "on_fully_rejected_tiles": 3,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 10,
+              "partly_rejected_recovered": 8,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -0.5747126436781658,
+              "share_on_rejected_tiles_pp": 0.8620689655172413
+            },
+            "128-inf": {
+              "n_objects": 135,
+              "recall_full": 0.9925925925925926,
+              "recall_cascade": 0.9925925925925926,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 0,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 0.0
+            }
+          },
+          "by_source": {
+            "GoogleEarth": {
+              "n_objects": 763,
+              "recall_full": 0.9606815203145478,
+              "recall_cascade": 0.9213630406290957,
+              "lost": 31,
+              "gained": 1,
+              "on_fully_rejected_tiles": 38,
+              "fully_rejected_lost": 31,
+              "fully_rejected_missed_anyway": 7,
+              "on_partly_rejected_tiles": 37,
+              "partly_rejected_recovered": 27,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 10,
+              "delta_recall_pp": -3.93184796854521,
+              "share_on_rejected_tiles_pp": 4.980340760157274
+            }
+          }
+        }
+      },
+      "conf_f1opt": {
+        "non_difficult": {
+          "overall": {
+            "n_objects": 744,
+            "recall_full": 0.9448924731182796,
+            "recall_cascade": 0.918010752688172,
+            "lost": 20,
+            "gained": 0,
+            "on_fully_rejected_tiles": 36,
+            "fully_rejected_lost": 20,
+            "fully_rejected_missed_anyway": 16,
+            "on_partly_rejected_tiles": 37,
+            "partly_rejected_recovered": 25,
+            "partly_rejected_lost": 0,
+            "partly_rejected_missed_anyway": 12,
+            "delta_recall_pp": -2.6881720430107614,
+            "share_on_rejected_tiles_pp": 4.838709677419355
+          },
+          "by_size": {
+            "0-16": {
+              "n_objects": 5,
+              "recall_full": 0.0,
+              "recall_cascade": 0.0,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 5,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 100.0
+            },
+            "16-32": {
+              "n_objects": 31,
+              "recall_full": 0.7741935483870968,
+              "recall_cascade": 0.45161290322580644,
+              "lost": 10,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 10,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 6,
+              "partly_rejected_recovered": 4,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -32.25806451612903,
+              "share_on_rejected_tiles_pp": 48.38709677419355
+            },
+            "32-64": {
+              "n_objects": 232,
+              "recall_full": 0.9051724137931034,
+              "recall_cascade": 0.875,
+              "lost": 7,
+              "gained": 0,
+              "on_fully_rejected_tiles": 13,
+              "fully_rejected_lost": 7,
+              "fully_rejected_missed_anyway": 6,
+              "on_partly_rejected_tiles": 21,
+              "partly_rejected_recovered": 13,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 8,
+              "delta_recall_pp": -3.0172413793103425,
+              "share_on_rejected_tiles_pp": 5.603448275862069
+            },
+            "64-128": {
+              "n_objects": 341,
+              "recall_full": 0.9824046920821115,
+              "recall_cascade": 0.9736070381231672,
+              "lost": 3,
+              "gained": 0,
+              "on_fully_rejected_tiles": 3,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 10,
+              "partly_rejected_recovered": 8,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -0.8797653958944274,
+              "share_on_rejected_tiles_pp": 0.8797653958944281
+            },
+            "128-inf": {
+              "n_objects": 135,
+              "recall_full": 0.9925925925925926,
+              "recall_cascade": 0.9925925925925926,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 0,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 0.0
+            }
+          },
+          "by_source": {
+            "GoogleEarth": {
+              "n_objects": 744,
+              "recall_full": 0.9448924731182796,
+              "recall_cascade": 0.918010752688172,
+              "lost": 20,
+              "gained": 0,
+              "on_fully_rejected_tiles": 36,
+              "fully_rejected_lost": 20,
+              "fully_rejected_missed_anyway": 16,
+              "on_partly_rejected_tiles": 37,
+              "partly_rejected_recovered": 25,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 12,
+              "delta_recall_pp": -2.6881720430107614,
+              "share_on_rejected_tiles_pp": 4.838709677419355
+            }
+          }
+        },
+        "all_objects": {
+          "overall": {
+            "n_objects": 763,
+            "recall_full": 0.9357798165137615,
+            "recall_cascade": 0.9069462647444299,
+            "lost": 22,
+            "gained": 0,
+            "on_fully_rejected_tiles": 38,
+            "fully_rejected_lost": 22,
+            "fully_rejected_missed_anyway": 16,
+            "on_partly_rejected_tiles": 37,
+            "partly_rejected_recovered": 25,
+            "partly_rejected_lost": 0,
+            "partly_rejected_missed_anyway": 12,
+            "delta_recall_pp": -2.8833551769331667,
+            "share_on_rejected_tiles_pp": 4.980340760157274
+          },
+          "by_size": {
+            "0-16": {
+              "n_objects": 5,
+              "recall_full": 0.0,
+              "recall_cascade": 0.0,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 5,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 100.0
+            },
+            "16-32": {
+              "n_objects": 31,
+              "recall_full": 0.7741935483870968,
+              "recall_cascade": 0.45161290322580644,
+              "lost": 10,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 10,
+              "fully_rejected_missed_anyway": 5,
+              "on_partly_rejected_tiles": 6,
+              "partly_rejected_recovered": 4,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -32.25806451612903,
+              "share_on_rejected_tiles_pp": 48.38709677419355
+            },
+            "32-64": {
+              "n_objects": 244,
+              "recall_full": 0.889344262295082,
+              "recall_cascade": 0.8524590163934426,
+              "lost": 9,
+              "gained": 0,
+              "on_fully_rejected_tiles": 15,
+              "fully_rejected_lost": 9,
+              "fully_rejected_missed_anyway": 6,
+              "on_partly_rejected_tiles": 21,
+              "partly_rejected_recovered": 13,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 8,
+              "delta_recall_pp": -3.688524590163944,
+              "share_on_rejected_tiles_pp": 6.147540983606557
+            },
+            "64-128": {
+              "n_objects": 348,
+              "recall_full": 0.9741379310344828,
+              "recall_cascade": 0.9655172413793104,
+              "lost": 3,
+              "gained": 0,
+              "on_fully_rejected_tiles": 3,
+              "fully_rejected_lost": 3,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 10,
+              "partly_rejected_recovered": 8,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 2,
+              "delta_recall_pp": -0.8620689655172376,
+              "share_on_rejected_tiles_pp": 0.8620689655172413
+            },
+            "128-inf": {
+              "n_objects": 135,
+              "recall_full": 0.9925925925925926,
+              "recall_cascade": 0.9925925925925926,
+              "lost": 0,
+              "gained": 0,
+              "on_fully_rejected_tiles": 0,
+              "fully_rejected_lost": 0,
+              "fully_rejected_missed_anyway": 0,
+              "on_partly_rejected_tiles": 0,
+              "partly_rejected_recovered": 0,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 0,
+              "delta_recall_pp": 0.0,
+              "share_on_rejected_tiles_pp": 0.0
+            }
+          },
+          "by_source": {
+            "GoogleEarth": {
+              "n_objects": 763,
+              "recall_full": 0.9357798165137615,
+              "recall_cascade": 0.9069462647444299,
+              "lost": 22,
+              "gained": 0,
+              "on_fully_rejected_tiles": 38,
+              "fully_rejected_lost": 22,
+              "fully_rejected_missed_anyway": 16,
+              "on_partly_rejected_tiles": 37,
+              "partly_rejected_recovered": 25,
+              "partly_rejected_lost": 0,
+              "partly_rejected_missed_anyway": 12,
+              "delta_recall_pp": -2.8833551769331667,
+              "share_on_rejected_tiles_pp": 4.980340760157274
+            }
+          }
+        }
+      }
+    }
+  }
+}

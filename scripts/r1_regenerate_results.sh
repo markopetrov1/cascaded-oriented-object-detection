@@ -36,6 +36,8 @@ scripts/r1_eval_seeds.sh
 for r in pillars/ship pillars/plane pillars/small_vehicle indep/ship fused/ship shipsp50/ship; do
   $PY scripts/r1_object_recall.py --run reports/r1/cascade/$r.json --masks risk_pooled risk_full_pooled plain_full_pooled same_split
 done
+for r in reports/r1/cascade/sweep/*.json; do $PY scripts/r1_object_recall.py --run $r --masks risk_pooled; done
+$PY scripts/r1_soda_ignore.py      # SODA-A ignore tiles and bootstrap intervals
 for r in pillars/ship pillars/plane pillars/small_vehicle; do $PY scripts/r1_stratified.py --run reports/r1/cascade/$r.json; done
 $PY scripts/r1_strata_scenes.py
 $PY scripts/r1_calibration_ties.py --task ship

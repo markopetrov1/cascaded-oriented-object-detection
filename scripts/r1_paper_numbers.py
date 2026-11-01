@@ -818,6 +818,87 @@ def sweep_summary() -> None:
     put("nSweepTasks", len(tasks))
 
 
+def round3() -> None:
+    """Numbers behind the corrections after the second internal review."""
+    # How close the sweep comes to its ceilings, and how many budget checks hold only as point
+    # estimates (the 95% scene-bootstrap interval reaches below -3 pp).
+    gaps, at_ceiling, ci_below = [], 0, 0
+    for p in sorted((R1 / "cascade/sweep").glob("*.json")):
+        r = json.load(open(p))["risk"]["pooled"]
+        gap = (1 - r["p_plus"]) - r["saving"]
+        gaps.append(gap)
+        at_ceiling += gap <= 0.005
+        ci_below += r["bootstrap"]["delta_mAP50_coco_ci95"][0] < -0.03
+    put("nAtCeiling", at_ceiling)
+    pc("maxCeilGap", max(gaps), 0)
+    put("nCIBelowBudget", ci_below)
+
+    # Tap study against the decoupled cascade at the decoupled gate's own held-out accept rate
+    # (Table 6), so that both sides of the time comparison use held-out operating points.
+    c = components()
+    de = [r for r in (load(f"cascade/indep/{n}.json") for n in ("ship", "ship_seed1", "ship_seed2")) if r]
+    if c is not None and de:
+        a = float(np.mean([r["risk"]["pooled"]["accept_rate"] for r in de]))
+        g, d = c["gates"]["mbv3large"], c["detectors"]["yolo11m_ships_p50"]
+        per = lambda e, b: e["fp32"][str(b)]["median_ms"] / b
+        pc("idPredStreamDecHeld", 1 - a - per(g, 1) / per(d, 1), 0)
+        pc("idPredBatchDecHeld", 1 - a - per(g, 32) / per(d, 16), 0)
+
+    # Spread of the five end-to-end passes, and whether the ranking holds in each of them.
+    rt = load("speed/runtime.json")
+    if rt is not None:
+        for mode, M in (("streaming", "Stream"), ("batched", "Batch")):
+            ms = {k: np.array(rt["runs"][f"{mode}/{k}"]["totals_ms"]) / rt["runs"][f"{mode}/{k}"]["n_tiles"]
+                  for k in ("decoupled", "fused")}
+            assert ms["decoupled"].max() < ms["fused"].min(), mode
+            for k, K in (("decoupled", "Dec"), ("fused", "Fused")):
+                num(f"rt{M}{K}Min", ms[k].min(), 1); num(f"rt{M}{K}Max", ms[k].max(), 1)
+
+    # Object recall after merging for every sweep task (scripts/r1_object_recall.py), and the
+    # small-vehicle loss when the difficult vehicles are counted too.
+    sw = {p.stem[len("sweep_"):]: json.load(open(p))["results"]["risk_pooled"]["conf_0.25"]
+          for p in sorted((R1 / "object_recall").glob("sweep_*.json"))}
+    if len(sw) == len(gaps):
+        dl = {k: v["non_difficult"]["overall"]["delta_recall_pp"] for k, v in sw.items()}
+        num("objSweepMin", abs(max(dl.values())), 1); num("objSweepMax", abs(min(dl.values())), 1)
+        lv = sw["large_vehicle"]["non_difficult"]["overall"]
+        num("tprSweepLargeVeh", load("cascade/sweep/large_vehicle.json")["risk"]["pooled"]["tpr"], 3)
+        num("objLargeVeh", abs(lv["delta_recall_pp"]), 1)
+        put("objLargeVehMissed", lv["fully_rejected_missed_anyway"])
+        put("objLargeVehRecovered", lv["partly_rejected_recovered"])
+        tc = sw["tennis_court"]["non_difficult"]["by_size"]["16-32"]
+        put("objTennisSmallN", tc["n_objects"]); num("objTennisSmall", abs(tc["delta_recall_pp"]), 0)
+    else:
+        MISSING.append("object_recall/sweep_*.json")
+    sv = load("object_recall/pillars_small_vehicle.json")
+    if sv is not None:
+        b = sv["results"]["risk_pooled"]["conf_0.25"]
+        num("recDeltaAllSmallVeh", abs(b["all_objects"]["overall"]["delta_recall_pp"]), 1)
+        pc("diffShareSmallVeh",
+           1 - b["non_difficult"]["overall"]["n_objects"] / b["all_objects"]["overall"]["n_objects"], 0)
+
+    # SODA-A: ignore tiles and scene-bootstrap intervals (scripts/r1_soda_ignore.py).
+    s = load("soda_ignore.json")
+    if s is not None:
+        for task, T in (("ship", "Ships"), ("plane", "Planes"), ("small_vehicle", "SmallVeh")):
+            t = s["tasks"][task]
+            lo, hi = t["bootstrap"]["delta_mAP50_coco_ci95"]
+            num(f"dapLoSoda{T}", abs(lo) * 100, 1); num(f"dapHiSoda{T}", abs(hi) * 100, 1)
+            put(f"dapHiSign{T}", "-" if hi < 0 else "")
+            pc(f"ceilSodaPos{T}", t["ceiling"]["ignore_as_positive"])
+            pc(f"ceilSodaEmpty{T}", t["ceiling"]["ignore_as_empty"])
+            pc(f"saveSodaLab{T}", t["saving_labelled_tiles"])
+            pc(f"accSodaIgn{T}", t["accept_rate_ignore_tiles"], 0)
+            pc(f"accSodaLab{T}", t["accept_rate_labelled_tiles"], 0)
+        pc("ceilSodaEmptyRise", max(t["ceiling"]["ignore_as_empty"] - t["ceiling"]["ignore_left_out"]
+                                    for t in s["tasks"].values()))
+
+    # The teaser scene's share of rejected ship-bearing tiles, against the validation set's.
+    d = load("teaser_facts.json")
+    if d is not None:
+        pc("teaserRejectedShare", d["rejected_positive_tiles"] / d["positive_tiles"], 0)
+
+
 def main() -> int:
     costs(); runtime(); protocol()
     cascade("Ships", "cascade/pillars/ship.json")
@@ -831,7 +912,7 @@ def main() -> int:
     for p, f in (("Ships", "pillars_ship"), ("Planes", "pillars_plane"), ("SmallVeh", "pillars_small_vehicle"),
                  ("Indep", "indep_ship"), ("Fused", "fused_ship")):
         recall(p, f"object_recall/{f}.json")
-    strata(); calibration(); hrsc(); prior(); misc(); facts(); sweep_summary(); fused_extra(); teaser(); detsize(); soda(); overlap(); codesign(); distill(); taps(); strata_scenes(); seeds(); objsize(); round2()
+    strata(); calibration(); hrsc(); prior(); misc(); facts(); sweep_summary(); fused_extra(); teaser(); detsize(); soda(); overlap(); codesign(); distill(); taps(); strata_scenes(); seeds(); objsize(); round2(); round3()
     lines = ["% Generated by scripts/r1_paper_numbers.py from reports/r1/ -- do not edit by hand."]
     seen = set()
     for name, val, note in MACROS:

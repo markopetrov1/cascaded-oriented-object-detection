@@ -1,0 +1,100 @@
+{
+  "note": "MobileNetV3-large sweep gates at the threshold chosen on all of DOTA val (rule risk)",
+  "n_tiles": 13740,
+  "n_ignore_tiles": 1541,
+  "tasks": {
+    "ship": {
+      "threshold": 0.6841125249862647,
+      "accept_rate": 0.04941775836972344,
+      "accept_rate_ignore_tiles": 0.11550940947436729,
+      "accept_rate_labelled_tiles": 0.0410689400770555,
+      "ignore_tiles_with_target": 162,
+      "ceiling": {
+        "ignore_left_out": 0.9669645052873186,
+        "ignore_as_empty": 0.970669577874818,
+        "ignore_as_positive": 0.8585152838427947,
+        "ignore_positive_if_target": 0.9588791848617176
+      },
+      "saving": 0.9472870748685542,
+      "saving_labelled_tiles": 0.9556358931612222,
+      "delta_mAP50_coco": -0.026868518619630355,
+      "bootstrap": {
+        "n": 1000,
+        "delta_mAP50_voc07_ci95": [
+          -0.07904270389073761,
+          -0.0007563931640843431
+        ],
+        "delta_mAP50_coco_ci95": [
+          -0.05276551831908803,
+          -0.009898443219826768
+        ],
+        "saving_ci95": [
+          0.9346290171350312,
+          0.9582696645533114
+        ]
+      }
+    },
+    "plane": {
+      "threshold": 2.4860844192176096e-08,
+      "accept_rate": 0.47459970887918485,
+      "accept_rate_ignore_tiles": 0.5171966255678131,
+      "accept_rate_labelled_tiles": 0.46921878842528075,
+      "ignore_tiles_with_target": 336,
+      "ceiling": {
+        "ignore_left_out": 0.9037626034920895,
+        "ignore_as_empty": 0.9145560407569141,
+        "ignore_as_positive": 0.8024017467248908,
+        "ignore_positive_if_target": 0.8901018922852983
+      },
+      "saving": 0.5221051243590928,
+      "saving_labelled_tiles": 0.527486044812997,
+      "delta_mAP50_coco": -0.010633571663086205,
+      "bootstrap": {
+        "n": 1000,
+        "delta_mAP50_voc07_ci95": [
+          -0.06130811678071307,
+          0.0015444570671990488
+        ],
+        "delta_mAP50_coco_ci95": [
+          -0.020767924805599178,
+          0.0008421453603210086
+        ],
+        "saving_ci95": [
+          0.4953436297900974,
+          0.5482590871760378
+        ]
+      }
+    },
+    "small_vehicle": {
+      "threshold": 0.02301775068044663,
+      "accept_rate": 0.3942503639010189,
+      "accept_rate_ignore_tiles": 0.6164828033744322,
+      "accept_rate_labelled_tiles": 0.3661775555373391,
+      "ignore_tiles_with_target": 835,
+      "ceiling": {
+        "ignore_left_out": 0.7012869907369457,
+        "ignore_as_empty": 0.7347889374090247,
+        "ignore_as_positive": 0.6226346433770015,
+        "ignore_positive_if_target": 0.6740174672489083
+      },
+      "saving": 0.6024544693372588,
+      "saving_labelled_tiles": 0.6305272777009385,
+      "delta_mAP50_coco": -0.011820249659859394,
+      "bootstrap": {
+        "n": 1000,
+        "delta_mAP50_voc07_ci95": [
+          -0.03393089290838112,
+          -0.0016565034042633408
+        ],
+        "delta_mAP50_coco_ci95": [
+          -0.016385221871416215,
+          -0.0062369844096257674
+        ],
+        "saving_ci95": [
+          0.5711714981501131,
+          0.6325759070962342
+        ]
+      }
+    }
+  }
+}
