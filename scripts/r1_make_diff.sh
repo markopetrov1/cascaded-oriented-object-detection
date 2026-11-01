@@ -46,6 +46,11 @@ p = sys.argv[1]
 t = open(p).read()
 t = re.sub(r"\\cmidrule\\DIFadd(?:FL)?\{(\([a-z]+\))\}\{\\DIFadd(?:FL)?\{([0-9-]+)\}\}", r"\\cmidrule\1{\2}", t)
 t = re.sub(r"\\cmidrule\\DIFadd(?:FL)?\{\{([0-9-]+)\}\}", r"\\cmidrule{\1}", t)
+# a heading whose whole title was deleted would print as an empty numbered heading and shift
+# the numbering of the sections after it; drop the command itself and latexdiff's counter
+# correction for it
+t = re.sub(r"\\((?:sub)*section)\{\\DIFdel\{[^{}]*\}\}\s*(?:%DIFAUXCMD)?\s*\\addtocounter\{\1\}\{-1\}%DIFAUXCMD\n?", "", t)
+t = re.sub(r"\\(?:sub)*section\{\\DIFdel\{[^{}]*\}\}", "", t)
 # colour every cell of the (new) tables as added text: >{\color{difadd}} before each column
 colour = lambda spec: "".join(r">{\color{difadd}}" + ch if ch in "lrc" else ch for ch in spec)
 t = re.sub(r"(\\begin\{tabular\}\{)([lrc|]+)\}", lambda m: m.group(1) + colour(m.group(2)) + "}", t)
