@@ -233,12 +233,14 @@ def figure_taps() -> None:
                      label="head at layer $k$, frozen trunk (3 seeds)")
     else:
         ax1.plot(ks, sav, marker="o", color=PALETTE[0], label="head at layer $k$, frozen trunk")
-    ind = load("cascade/indep/ship.json")
-    fus = load("cascade/fused/ship.json")
+    # reference lines: mean over the detector seeds that exist (67, 1, 2), as in the fused-gate table
+    ref = lambda kind: [d for d in (load(f"cascade/{kind}/{n}.json") for n in ("ship", "ship_seed1", "ship_seed2")) if d]
+    ind, fus = ref("indep"), ref("fused")
     if ind:
-        ax1.axhline(100 * ind["risk"]["pooled"]["saving"], color=PALETTE[2], ls="--", label="decoupled gate")
+        ax1.axhline(100 * np.mean([d["risk"]["pooled"]["saving"] for d in ind]), color=PALETTE[2], ls="--",
+                    label="decoupled gate")
     if fus:
-        ax1.axhline(100 * fus["risk"]["pooled"]["saving"], color=PALETTE[3], ls=":",
+        ax1.axhline(100 * np.mean([d["risk"]["pooled"]["saving"] for d in fus]), color=PALETTE[3], ls=":",
                     label="OAN head at layer 10, joint training")
     ax1.set_ylabel("Arithmetic saved (%)")
     ax1.set_ylim(0, 100)

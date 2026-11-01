@@ -193,7 +193,7 @@ def objects_table() -> str:
     return r"""
 \begin{table*}[!t]
 \centering
-\caption{Object-level effect of tile rejection after merging, at the operating points chosen on held-out scenes, for non-difficult objects of the gated class at detector confidence $0.25$. \emph{Only on rejected tiles} is the share of objects all of whose tiles were rejected; of those, \emph{lost} were found by the full pass and \emph{missed anyway} were not. Objects with some tiles rejected are \emph{recovered} when an accepted overlapping tile still yields them. Rows marked $\ast$ use the ships detector pair of Section~\ref{sec:fusing}.}
+\caption{Object-level effect of tile rejection after merging, at the operating points chosen on held-out scenes, for non-difficult objects of the gated class at detector confidence $0.25$. \emph{Only on rejected tiles} is the share of objects all of whose tiles were rejected; of those, \emph{lost} were found by the full pass and \emph{missed anyway} were not. Objects with some tiles rejected are \emph{recovered} when an accepted overlapping tile still yields them. Rows marked $\ast$ use the ships detector pair of Section~\ref{sec:fusing}, first seed.}
 \label{tab:objects}
 \footnotesize
 \setlength{\tabcolsep}{4pt}

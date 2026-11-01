@@ -200,7 +200,8 @@ def seeds() -> None:
     keys = ("fpJoint", "fpCtrl", "fpDiffMean", "fpDiffLo", "fpDiffHi", "fpDiffCILo", "fpDiffCIHi",
             "saveFusedMean", "saveFusedSD", "saveIndepMean", "saveIndepSD", "saveGapMin", "saveGapMax",
             "dapFusedMean", "dapFusedSD", "dapIndepMean", "dapIndepSD", "praucFusedMean", "praucFusedSD",
-            "praucIndepMean", "praucIndepSD")
+            "praucIndepMean", "praucIndepSD", "accFusedMean", "accIndepMean", "gateFreeFusedMean",
+            "gateFreeIndepMean")
     if len(pairs) < 3:
         for k in keys:
             put(k, None)
@@ -220,6 +221,8 @@ def seeds() -> None:
         num(f"save{lab}Mean", s.mean(), 1); num(f"save{lab}SD", s.std(ddof=1), 1)
         num(f"dap{lab}Mean", abs(a.mean()), 2); num(f"dap{lab}SD", a.std(ddof=1), 2)
         num(f"prauc{lab}Mean", pr.mean(), 3); num(f"prauc{lab}SD", pr.std(ddof=1), 3)
+        num(f"acc{lab}Mean", np.mean([get(r, "accept_rate") for r in rs]), 3)
+        pc(f"gateFree{lab}Mean", float(np.mean([get(r, "saving_if_gate_free") for r in rs])))
     gap = np.array([100 * (get(d, "saving") - get(f, "saving")) for f, d in pairs])
     num("saveGapMin", gap.min(), 1); num("saveGapMax", gap.max(), 1)
 
