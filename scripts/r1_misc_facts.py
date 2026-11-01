@@ -30,7 +30,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 
 from r1_eval_cascade import tile_info  # noqa: E402
 from r1_object_recall import found  # noqa: E402
-from src.r1_eval import (CLASSES, EvalCache, build_cache, evaluate, load_tile_predictions,  # noqa: E402
+from src.r1_eval import (CLASS_ID, CLASSES, EvalCache, build_cache, evaluate, load_tile_predictions,  # noqa: E402
                          load_yolo_gt, parse_stem, to_polygons)
 
 OUT = REPO / "reports/r1"
@@ -98,7 +98,19 @@ def dataset_facts(cache: EvalCache) -> dict:
         if pr:
             gaps.append(max(pr) - pr[-1])
     test = [r for r in hrsc if r.get("split") == "test"]
+    # positive tiles (any instance of the class, difficult included, as the gates are trained) that
+    # hold only difficult instances, which the DOTA matching ignores
+    n_per = np.diff(cache.gt_tiles_ptr)
+    owner = np.repeat(np.arange(len(n_per)), n_per)
+    only_difficult = {}
+    for name in ("ship", "plane", "small vehicle"):
+        m = cache.gt_cls == CLASS_ID[name]
+        any_t = set(cache.gt_tiles_idx[m[owner]].tolist())
+        nd_t = set(cache.gt_tiles_idx[(m & ~cache.gt_difficult)[owner]].tolist())
+        only_difficult[name.replace(" ", "_")] = {"positive_tiles": len(any_t),
+                                                  "only_difficult": len(any_t - nd_t)}
     return {"dota_train_tiles": sum(r["split"] == "train" for r in meta),
+            "positive_tiles_only_difficult": only_difficult,
             "dota_val_tiles": sum(r["split"] == "val" for r in meta),
             "dota_val_scenes": len({r["source_stem"] for r in meta if r["split"] == "val"}),
             "densest_tile_detections_multiclass": int(per_tile.max()),

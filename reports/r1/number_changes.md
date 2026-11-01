@@ -1,6 +1,6 @@
 # Generated numbers, submission against revision
 
-Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (744 macros), written by `scripts/r1_number_changes.py`.
+Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (775 macros), written by `scripts/r1_number_changes.py`.
 
 The revision changed the protocol behind most numbers: predictions at confidence 0.001 instead of 0.25, image-level AP after merging tiles, a 101-point AP budget applied on held-out scenes (two-fold cross-fitting), the shared-backbone cost for fused gates, and one timing protocol. A macro that kept its name may therefore measure something slightly different; the changelog gives the reason for each change.
 
@@ -95,7 +95,7 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `praucOANjoint` | 0.946 |
 | `praucIndepMatched` | 0.885 |
 
-## Added (697)
+## Added (728)
 
 | Macro | Revision |
 |---|---|
@@ -572,6 +572,10 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `hoDapMean` | 1.69 |
 | `ssDapMean` | 2.70 |
 | `nOverBudget` | 2 |
+| `selSplitMean` | 1.7 |
+| `selGuardMean` | 6.8 |
+| `nPlainOverBudget` | 8 |
+| `nSweepTasks` | 15 |
 | `praucFused` | 0.946 |
 | `thrRuntimeFused` | 0.452 |
 | `praucIndep` | 0.885 |
@@ -582,6 +586,7 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `teaserTiles` | 36 |
 | `teaserSkipped` | 16 |
 | `teaserPosTiles` | 25 |
+| `teaserEmpty` | 11 |
 | `teaserLostPos` | 5 |
 | `teaserOverallRejected` | 23 |
 | `totMShips` | 39.9 |
@@ -746,8 +751,11 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `sdTapMax` | 1.3 |
 | `tapBest` | 2 |
 | `saveTapBest` | 64.7 |
-| `tapTimeStreamBest` | 49 |
-| `tapTimeBatchBest` | 48 |
+| `tapTimeStreamBest` | 60 |
+| `tapTimeStreamBestLayer` | 2 |
+| `tapTimeStreamTwoGood` | 70 |
+| `tapTimeBatchBest` | 59 |
+| `tapTimeBatchBestLayer` | 2 |
 | `scnShipsGFLoss` | 13.07 |
 | `scnShipsGFScenes` | 27 |
 | `scnShipsGFWithout` | 9.84 |
@@ -796,3 +804,26 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `objSizeShipWorstBucket` | between $64$ and $128$ |
 | `objSizePlaneSmall` | 11.0 |
 | `objSizePlaneSmallN` | 326 |
+| `rtDapDec` | 1.75 |
+| `rtDapFused` | 1.71 |
+| `rtDapGap` | 0.05 |
+| `benchWorstConfig` | the EfficientNet-B0 gate at batch $8$ in FP32 |
+| `gatelatoneHigh` | 6.83 |
+| `benchGateOneSpread` | 20 |
+| `latratiooneHigh` | 29.1 |
+| `latratiooneResEighteen` | 9 |
+| `svGateFoldA` | ResNet-18 |
+| `svGateFoldB` | ResNet-50 |
+| `onlyDiffShips` | 4.7 |
+| `onlyDiffPlanes` | 0.4 |
+| `onlyDiffSmallVeh` | 37.3 |
+| `totMSweepShips` | 31.6 |
+| `totMSweepPlanes` | 46.1 |
+| `totMSweepSmallVeh` | 64.8 |
+| `fusedCeiling` | 44.9 |
+| `tapNeedAccTwo` | 3.4 |
+| `tapNoneFromFour` | yes |
+| `dapLoSweepTennisCourt` | 6.89 |
+| `dapHiSweepTennisCourt` | $-$0.96 |
+| `dapLoSweepSmallVeh` | 9.81 |
+| `dapHiSweepSmallVeh` | $-$0.08 |

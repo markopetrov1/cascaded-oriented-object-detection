@@ -1,5 +1,19 @@
 {
   "dota_train_tiles": 15749,
+  "positive_tiles_only_difficult": {
+    "ship": {
+      "positive_tiles": 921,
+      "only_difficult": 43
+    },
+    "plane": {
+      "positive_tiles": 688,
+      "only_difficult": 3
+    },
+    "small_vehicle": {
+      "positive_tiles": 1546,
+      "only_difficult": 576
+    }
+  },
   "dota_val_tiles": 5297,
   "dota_val_scenes": 458,
   "densest_tile_detections_multiclass": 5132,

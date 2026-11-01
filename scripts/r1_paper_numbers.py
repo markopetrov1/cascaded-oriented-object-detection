@@ -246,6 +246,86 @@ def objsize() -> None:
             put(k, None)
 
 
+def round2() -> None:
+    """Numbers added for the second-round checks: accuracy of the timed operating points, the
+    spread between the two benchmark runs, gate choice per fold, difficult-only positive tiles,
+    and the YOLO11m cascade with the MobileNetV3-large sweep gate."""
+    # timed operating points: thresholds chosen on all of DOTA validation (r1_cascade_runtime.py)
+    for kind, K in (("indep", "Dec"), ("fused", "Fused")):
+        d = load(f"cascade/{kind}/ship.json")
+        s = d["selections"]["risk"]["all"] if d else None
+        abs_pp(f"rtDap{K}", s["select_mAP50_coco"] - s["select_full_mAP50_coco"] if s else None)
+    d1, d2 = load("cascade/indep/ship.json"), load("cascade/fused/ship.json")
+    if d1 and d2:
+        a = d1["selections"]["risk"]["all"]; b = d2["selections"]["risk"]["all"]
+        abs_pp("rtDapGap", (a["select_mAP50_coco"] - a["select_full_mAP50_coco"])
+               - (b["select_mAP50_coco"] - b["select_full_mAP50_coco"]))
+    # the two benchmark runs: largest disagreement, and the one that matters (gate at batch 1)
+    r3, r4, c = load("speed/components_run3.json"), load("speed/components_run4.json"), components()
+    if r3 and r4 and c:
+        rows = []
+        def walk(x, y, path):
+            if isinstance(x, dict) and isinstance(y, dict):
+                if isinstance(x.get("median_ms"), (int, float)) and isinstance(y.get("median_ms"), (int, float)):
+                    rows.append((abs(x["median_ms"] - y["median_ms"]) / min(x["median_ms"], y["median_ms"]), path,
+                                 x["median_ms"], y["median_ms"]))
+                    return
+                for k in x:
+                    if k in y:
+                        walk(x[k], y[k], path + [k])
+        walk(r3, r4, [])
+        worst = max(rows)
+        names = {"effb0": "EfficientNet-B0", "mbv3large": "MobileNetV3-large", "mbv3small": "MobileNetV3-small",
+                 "resnet18": "ResNet-18", "resnet50": "ResNet-50", "tiny": "tiny"}
+        if worst[1][0] == "gates":
+            put("benchWorstConfig", f"the {names.get(worst[1][1], worst[1][1])} gate at batch ${worst[1][3]}$ in {worst[1][2].upper()}")
+        else:
+            put("benchWorstConfig", " ".join(worst[1]))
+        g3 = r3["gates"]["mbv3large"]["fp32"]["1"]["median_ms"]; g4 = r4["gates"]["mbv3large"]["fp32"]["1"]["median_ms"]
+        det1 = c["detectors"]["yolo11m_ships_p50"]["fp32"]["1"]["median_ms"]
+        num("gatelatoneHigh", max(g3, g4), 2)
+        pc("benchGateOneSpread", abs(g3 - g4) / min(g3, g4), 0)
+        pc("latratiooneHigh", max(g3, g4) / det1)
+        pc("latratiooneResEighteen", c["gates"]["resnet18"]["fp32"]["1"]["median_ms"] / det1, 0)
+    # which backbone each fold chose for small vehicles (the rule picks per fold)
+    sv = load("cascade/pillars/small_vehicle.json")
+    nice = {"mbv3small": "MobileNetV3-small", "mbv3large": "MobileNetV3-large", "resnet18": "ResNet-18",
+            "resnet50": "ResNet-50", "effb0": "EfficientNet-B0", "tiny": "tiny ConvNet"}
+    if sv:
+        put("svGateFoldA", nice[sv["selections"]["risk"]["A"]["gate"]])
+        put("svGateFoldB", nice[sv["selections"]["risk"]["B"]["gate"]])
+    # positive tiles holding only difficult instances (ignored by the matching)
+    f = load("dataset_facts.json")
+    od = f.get("positive_tiles_only_difficult") if f else None
+    for key, T in (("ship", "Ships"), ("plane", "Planes"), ("small_vehicle", "SmallVeh")):
+        v = od[key] if od else None
+        pc(f"onlyDiff{T}", v["only_difficult"] / v["positive_tiles"] if v else None)
+    # YOLO11m with the MobileNetV3-large sweep gate, for the detector-size comparison
+    for task, T in (("ship", "Ships"), ("plane", "Planes"), ("small_vehicle", "SmallVeh")):
+        d = load(f"cascade/sweep/{task}.json")
+        num(f"totMSweep{T}", (1 - d["risk"]["pooled"]["saving"]) * d["detector_gflops"] if d else None, 1)
+    # fused arm: most it could save at any threshold (accept rate zero), arithmetic
+    if c is not None:
+        det = c["detectors"]["yolo11m_ships_p50"]
+        pc("fusedCeiling", 1 - c["prefix"]["10"]["prefix_gflops"] / det["gflops"])
+        # tap study, what the bound alone says: the accept rate a layer-2 head would need to
+        # match the decoupled gate's mean saving, and whether layers 4 and up could at all,
+        # with each tap's prefix and pooled head as costed in the tap study
+        dec = [load(f"cascade/indep/{n}.json") for n in ("ship", "ship_seed1", "ship_seed2")]
+        dec_save = float(np.mean([d["risk"]["pooled"]["saving"] for d in dec if d]))
+        fc = {k: load(f"cascade/tap/tap{k}.json") for k in (2, 4, 6, 8, 10)}
+        if all(fc.values()):
+            pk = {k: d["fused_cost"]["prefix"] / d["detector_gflops"] for k, d in fc.items()}
+            hk = {k: d["fused_cost"]["head"] / d["detector_gflops"] for k, d in fc.items()}
+            pc("tapNeedAccTwo", 1 - (dec_save + hk[2]) / (1 - pk[2]))
+            put("tapNoneFromFour", "yes" if all(1 - pk[k] - hk[k] < dec_save for k in (4, 6, 8, 10)) else "no")
+    # bootstrap intervals of the two DOTA tasks that exceed the budget on held-out scenes
+    for task, T in (("tennis_court", "TennisCourt"), ("small_vehicle", "SmallVeh")):
+        d = load(f"cascade/sweep/{task}.json")
+        b = d["risk"]["pooled"]["bootstrap"]["delta_mAP50_coco_ci95"] if d else None
+        abs_pp(f"dapLoSweep{T}", b[0] if b else None); signed_pp(f"dapHiSweep{T}", b[1] if b else None)
+
+
 def charged(r: dict) -> float:
     """Share of the skipped detector work that came from target-bearing tiles:
     p+(1-TPR) / [p+(1-TPR) + (1-p+)(1-FPR)]. The gate's own cost is a separate term."""
@@ -496,17 +576,25 @@ def taps() -> None:
         best = max(words, key=lambda k: mean[k]["saving"])
         put("tapBest", best)
         pc("saveTapBest", mean[best]["saving"])
-        # Time saving the identity predicts for each tap from its measured prefix and head latency
-        # (ships detector, batch 1 and per tile at batch 16), as idPred* does for the cascades.
+        # Time saving the identity predicts for each tap from its measured prefix latency (ships
+        # detector, batch 1 and per tile at batch 16), as idPred* does for the cascades. The
+        # benchmark timed the head on the tap's full-resolution feature, while the tap-study heads
+        # pool to 32 x 32 first and were not timed on their own, so the head's time is left out:
+        # these are upper bounds on what each tap could save.
         det = c["detectors"]["yolo11m_ships_p50"]
         per = lambda b: det["fp32"][str(b)]["median_ms"] / b
         for b, name in ((1, "Stream"), (16, "Batch")):
-            pred = []
+            pred = {}
             for k in words:
                 f = c["prefix"][str(k)]["fp32"][str(b)]
-                pi, eta = f["prefix"]["median_ms"] / b / per(b), f["head"]["median_ms"] / b / per(b)
-                pred.append((1 - pi) * (1 - mean[k]["accept"]) - eta)
-            pc(f"tapTime{name}Best", max(pred), 0)
+                pred[k] = (1 - f["prefix"]["median_ms"] / b / per(b)) * (1 - mean[k]["accept"])
+            best_k = max(pred, key=pred.get)
+            pc(f"tapTime{name}Best", pred[best_k], 0)
+            put(f"tapTime{name}BestLayer", best_k)
+            if b == 1:
+                # a layer-2 head that accepted as few tiles as the layer-10 head
+                f2 = c["prefix"]["2"]["fp32"]["1"]
+                pc("tapTimeStreamTwoGood", (1 - f2["prefix"]["median_ms"] / per(1)) * (1 - mean[10]["accept"]), 0)
     else:
         for k in ("tapBest", "saveTapBest", "tapTimeStreamBest", "tapTimeBatchBest"):
             put(k, None)
@@ -521,6 +609,7 @@ def teaser() -> None:
     put("teaserTiles", d["tiles"])
     put("teaserSkipped", d["skipped"])
     put("teaserPosTiles", d["positive_tiles"])
+    put("teaserEmpty", d["tiles"] - d["positive_tiles"])
     put("teaserLostPos", d["rejected_positive_tiles"])
     pc("teaserOverallRejected", d["overall_rejected_positive_share"], 0)
 
@@ -701,10 +790,15 @@ def sweep_summary() -> None:
     if not tasks:
         MISSING.append("cascade/sweep/*.json")
         return
-    gap, ho_dap, ss_dap = [], [], []
+    gap, ho_dap, ss_dap, split_eff, guard_eff, plain_over = [], [], [], [], [], 0
     for p in tasks:
         d = json.load(open(p))
         r, s = d["risk"]["pooled"], d["same_split"]
+        pl = d["plain_full"]["pooled"]
+        # separating the two changes: reporting on held-out scenes (same rule, plain_full) and the
+        # bootstrap safeguard with the backbone and calibration fixed (risk)
+        split_eff.append(s["saving"] - pl["saving"]); guard_eff.append(pl["saving"] - r["saving"])
+        plain_over += pl["delta_mAP50_coco"] < -0.03
         name = "".join(w.capitalize() for w in d["task"].split())
         pc(f"saveSweep{name}", r["saving"])
         abs_pp(f"dapSweep{name}", r["delta_mAP50_coco"])
@@ -718,6 +812,10 @@ def sweep_summary() -> None:
     abs_pp("hoDapMean", float(np.mean(ho_dap)))
     abs_pp("ssDapMean", float(np.mean(ss_dap)))
     put("nOverBudget", sum(1 for x in ho_dap if x < -0.03))
+    pc("selSplitMean", float(np.mean(split_eff)))
+    pc("selGuardMean", float(np.mean(guard_eff)))
+    put("nPlainOverBudget", plain_over)
+    put("nSweepTasks", len(tasks))
 
 
 def main() -> int:
@@ -733,7 +831,7 @@ def main() -> int:
     for p, f in (("Ships", "pillars_ship"), ("Planes", "pillars_plane"), ("SmallVeh", "pillars_small_vehicle"),
                  ("Indep", "indep_ship"), ("Fused", "fused_ship")):
         recall(p, f"object_recall/{f}.json")
-    strata(); calibration(); hrsc(); prior(); misc(); facts(); sweep_summary(); fused_extra(); teaser(); detsize(); soda(); overlap(); codesign(); distill(); taps(); strata_scenes(); seeds(); objsize()
+    strata(); calibration(); hrsc(); prior(); misc(); facts(); sweep_summary(); fused_extra(); teaser(); detsize(); soda(); overlap(); codesign(); distill(); taps(); strata_scenes(); seeds(); objsize(); round2()
     lines = ["% Generated by scripts/r1_paper_numbers.py from reports/r1/ -- do not edit by hand."]
     seen = set()
     for name, val, note in MACROS:
