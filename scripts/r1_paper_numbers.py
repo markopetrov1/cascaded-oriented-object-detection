@@ -822,14 +822,18 @@ def round3() -> None:
     """Numbers behind the corrections after the second internal review."""
     # How close the sweep comes to its ceilings, and how many budget checks hold only as point
     # estimates (the 95% scene-bootstrap interval reaches below -3 pp).
-    gaps, at_ceiling, ci_below = [], 0, 0
+    gaps, at_ceiling, ci_below, tpr_at = [], 0, 0, []
     for p in sorted((R1 / "cascade/sweep").glob("*.json")):
         r = json.load(open(p))["risk"]["pooled"]
         gap = (1 - r["p_plus"]) - r["saving"]
         gaps.append(gap)
-        at_ceiling += gap <= 0.005
+        if gap <= 0.005:
+            at_ceiling += 1
+            tpr_at.append(r["tpr"])
         ci_below += r["bootstrap"]["delta_mAP50_coco_ci95"][0] < -0.03
     put("nAtCeiling", at_ceiling)
+    # tasks at the ceiling get there partly by rejecting target-bearing tiles
+    num("tprAtCeilMin", min(tpr_at), 3); num("tprAtCeilMax", max(tpr_at), 3)
     pc("maxCeilGap", max(gaps), 0)
     put("nCIBelowBudget", ci_below)
 

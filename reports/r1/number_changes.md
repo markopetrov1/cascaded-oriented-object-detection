@@ -1,6 +1,6 @@
 # Generated numbers, submission against revision
 
-Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (824 macros), written by `scripts/r1_number_changes.py`.
+Source: `paper_r0_submitted/generated_numbers.tex` (99 macros) and `paper/generated_numbers.tex` (826 macros), written by `scripts/r1_number_changes.py`.
 
 The revision changed the protocol behind most numbers: predictions at confidence 0.001 instead of 0.25, image-level AP after merging tiles, a 101-point AP budget applied on held-out scenes (two-fold cross-fitting), the shared-backbone cost for fused gates, and one timing protocol. A macro that kept its name may therefore measure something slightly different; the changelog gives the reason for each change.
 
@@ -95,7 +95,7 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `praucOANjoint` | 0.946 |
 | `praucIndepMatched` | 0.885 |
 
-## Added (777)
+## Added (779)
 
 | Macro | Revision |
 |---|---|
@@ -828,6 +828,8 @@ The revision changed the protocol behind most numbers: predictions at confidence
 | `dapLoSweepSmallVeh` | 9.81 |
 | `dapHiSweepSmallVeh` | $-$0.08 |
 | `nAtCeiling` | 4 |
+| `tprAtCeilMin` | 0.605 |
+| `tprAtCeilMax` | 0.799 |
 | `maxCeilGap` | 64 |
 | `nCIBelowBudget` | 9 |
 | `idPredStreamDecHeld` | 59 |
