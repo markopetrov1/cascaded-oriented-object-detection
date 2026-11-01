@@ -190,10 +190,37 @@ def objects_table() -> str:
                                 f"${o['share_on_rejected_tiles_pp']:.1f}$", str(o["fully_rejected_lost"]),
                                 str(o["fully_rejected_missed_anyway"]), str(o["partly_rejected_recovered"]),
                                 str(o["partly_rejected_lost"])]) + r" \\")
+    # Lower part: object recall by object size (sqrt of polygon area, px), one row per task.
+    buckets = [("0-16", "$<16$"), ("16-32", "$16$--$32$"), ("32-64", "$32$--$64$"), ("64-128", "$64$--$128$"),
+               ("128-inf", "$>128$")]
+    srows = []
+    for rel, name in (("ship", "Ship"), ("plane", "Plane"), ("small_vehicle", "Small vehicle")):
+        d = load(f"object_recall/pillars_{rel}.json")
+        by = d["results"]["risk_pooled"]["conf_0.25"]["non_difficult"]["by_size"] if d else {}
+        cells = [name]
+        for key, _ in buckets:
+            b = by.get(key)
+            n = b["n_objects"] if b else 0
+            cells.append(f"${n:,}$".replace(",", "{,}"))
+            cells += ([f(b["recall_full"]), f"${b['delta_recall_pp']:.1f}$"] if b and n >= 20 else ["---", "---"])
+        srows.append(" & ".join(cells) + r" \\")
+    head1 = " & ".join([""] + [rf"\multicolumn{{3}}{{c}}{{{lab}\,px}}" for _, lab in buckets]) + r" \\"
+    rules = "".join(rf"\cmidrule(lr){{{2 + 3 * i}-{4 + 3 * i}}}" for i in range(len(buckets)))
+    head2 = " & ".join(["Task"] + ["$n$", "full", "change"] * len(buckets)) + r" \\"
+    lower = r"""
+\par\vspace{6pt}
+\setlength{\tabcolsep}{3.6pt}
+\begin{tabular}{l""" + "rrr" * len(buckets) + r"""}
+\toprule
+""" + head1 + "\n" + rules + "\n" + head2 + r"""
+\midrule
+""" + "\n".join(srows) + r"""
+\bottomrule
+\end{tabular}"""
     return r"""
 \begin{table*}[!t]
 \centering
-\caption{Object-level effect of tile rejection after merging, at the operating points chosen on held-out scenes, for non-difficult objects of the gated class at detector confidence $0.25$. \emph{Only on rejected tiles} is the share of objects all of whose tiles were rejected; of those, \emph{lost} were found by the full pass and \emph{missed anyway} were not. Objects with some tiles rejected are \emph{recovered} when an accepted overlapping tile still yields them. Rows marked $\ast$ use the ships detector pair of Section~\ref{sec:fusing}, first seed.}
+\caption{Object-level effect of tile rejection after merging, at the operating points chosen on held-out scenes, for non-difficult objects of the gated class at detector confidence $0.25$. \emph{Only on rejected tiles} is the share of objects all of whose tiles were rejected; of those, \emph{lost} were found by the full pass and \emph{missed anyway} were not. Objects with some tiles rejected are \emph{recovered} when an accepted overlapping tile still yields them. Rows marked $\ast$ use the ships detector pair of Section~\ref{sec:fusing}, first seed. The lower part gives object recall by object size, the square root of the polygon area in pixels: the number of objects $n$, the full-pass recall and the cascade's change in percentage points (left blank below $20$ objects).}
 \label{tab:objects}
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -205,7 +232,7 @@ Task & Accept & full & cascade & \% of objects & lost & missed anyway & recovere
 \midrule
 """ + "\n".join(rows) + r"""
 \bottomrule
-\end{tabular}
+\end{tabular}""" + lower + r"""
 \end{table*}
 """
 
